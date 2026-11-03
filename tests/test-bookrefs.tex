@@ -15,8 +15,9 @@
 \lpsametext{appendix section}{\booksection{A.2}}{\want{Section}{A.2}}
 \lpsametext{sub-equation}{\bookeq{3.1a}}{\want{Equation}{(3.1a)}}
 \lpsametext{three-level section}{\booksection{2.3.1}}{\want{Section}{2.3.1}}
-\lpsametext{section from label}{\booksection{sec:intro}}{\want{Section}{1}}
-\lpsametext{equation from label}{\bookeq{eq:one}}{\want{Equation}{(1)}}
+% the argument is always text, never looked up as a label
+\lpsametext{label name is just text}{\booksection{sec:intro}}{\want{Section}{sec:intro}}
+\lpsametext{label via ref}{\bookeq{\ref{eq:one}}}{\want{Equation}{(1)}}
 \lpsametext{renamed}{\renewcommand\bookeqname{Ligning}\bookeq{2}}{\want{Ligning}{(2)}}
 % regression: theorem references are unchanged by the new number forms
 \lpsametext{theorem reference unchanged}{\theorem{4.2}}{\want{Theorem}{4.2}}

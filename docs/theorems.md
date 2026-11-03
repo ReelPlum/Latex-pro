@@ -36,13 +36,15 @@ Notes:
 
 ## References to the book
 
-Sections, chapters and equations of the book (or of your own document, by
-label) are written in the same style:
+Sections, chapters and equations of the book are written in the same style.
+The argument is always printed as is, so anything works: `2.3`, `A.2`,
+`3.1a`, `b`. To point at a label of your own document, pass its number with
+`\Ref*` (or `\ref`):
 
 ```latex
 By \booksection{2.3} and \bookeq{3.12} ...   % "Section 2.3", "Equation (3.12)"
-See \bookchapter{4} and \booksection{A.2}.
-As in \booksection{sec:intro}.               % a label of your own document
+See \bookchapter{4} and \booksection{b}.      % "Chapter 4", "Section b"
+As in \bookeq{\Ref*{eq:main}}.               % "Equation (2)", from a label
 ```
 
 | Command | Result |
@@ -50,13 +52,13 @@ As in \booksection{sec:intro}.               % a label of your own document
 | `\booksection{2.3}` | <span style="font-variant:small-caps">Section</span> **2.3** |
 | `\bookchapter{4}` | <span style="font-variant:small-caps">Chapter</span> **4** |
 | `\bookeq{3.12}`, `\bookeq{(3.12)}` | <span style="font-variant:small-caps">Equation</span> **(3.12)** |
-| `\booksection{sec:intro}`, `\bookeq{eq:main}` | the same, number taken from a label |
+| `\bookeq{\Ref*{eq:main}}` | the same with the number of your own label |
 
 Notes:
 
-- A typed number can be `3`, `4.2`, `2.3.1`, an appendix `A.2` or a
-  sub-equation `3.1a`. This also holds for `\theorem{A.1}` etc.
 - Change the words with `\renewcommand\booksectionname{Afsnit}`,
   `\bookchaptername` and `\bookeqname`.
+- The theorem references (`\theorem{…}` etc.) also take `\ref*{…}` now, and
+  their typed numbers may be `A.2` or `3.1a`.
 
 Examples: [`examples/theorems.tex`](../examples/theorems.tex). Tests: [`tests/test-theorems.tex`](../tests/test-theorems.tex).
