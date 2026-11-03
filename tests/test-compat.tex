@@ -11,8 +11,21 @@
 \begin{document}
 \begin{lemma}\label{lem:h} With hyperref. \end{lemma}
 \lpref{label with hyperref}{lem:h}{1}
-\lpsametext{reference with hyperref}{\lemma{lem:h}}
+\lpsametext{reference with hyperref}{\lemma{\Ref*{lem:h}}}
   {\textnormal{\textsc{Lemma}}~\textnormal{\textbf{1}}}
+% \lemma{\Ref*{label}} links to the label
+\def\lpgotlink{none}\def\lpwantlink{lem:h}
+\begingroup
+  \def\hyperref[#1]#2{\gdef\lpgotlink{#1}#2}%
+  \sbox0{\lemma{\Ref*{lem:h}}}%
+\endgroup
+\lptrue{\Ref* reference is a link to its label}{\ifx\lpgotlink\lpwantlink}
+\def\lpgotlink{none}\def\lpwantlink{none}
+\begingroup
+  \def\hyperref[#1]#2{\gdef\lpgotlink{#1}#2}%
+  \sbox0{\exercise{b}}%
+\endgroup
+\lptrue{plain text is no link}{\ifx\lpgotlink\lpwantlink}
 \lpsame{R with amssymb loaded first}{\R}{\mathbb{R}}
 \lpsame{bmat with amsmath loaded first}{\bmat{1}}{\begin{bmatrix}1\end{bmatrix}}
 % code boxes with the document's own tcolorbox and hyperref

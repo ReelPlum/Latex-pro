@@ -24,8 +24,8 @@ relative to the main `.tex` file.
 | `\pseudo*{file.txt}` | the same without line numbers |
 | `\pseudoindentfalse` | from here on, keep the file's own indentation (`\pseudoindenttrue` turns it back on) |
 
-`opts` is any `listings` option (`firstline`, `lastline`, `numbers=none`,
-…). `caption={…}` (or `title={…}`) is shown on the right of the header bar;
+`opts` is `span` (let the box break across pages) or any `listings` option
+(`firstline`, `lastline`, `numbers=none`, …). `caption={…}` (or `title={…}`) is shown on the right of the header bar;
 without it the header shows the file name.
 
 ### Look
@@ -42,7 +42,10 @@ with GitHub-light colours, like a code block in an editor:
 | strings | dark blue |
 | comments | grey italic |
 
-Long listings break across pages inside the box. Nothing needs
+A box is kept in one piece by default. Add `span` to let a long listing run
+over several pages: `\python[span]{long.py}`, `\pseudo[span]{algo.txt}`,
+`\begin{pythoncode}[span]`. For every block at once, put
+`\tcbset{latexpro-code/.append style={breakable}}` after loading. Nothing needs
 `-shell-escape`. Change the look after loading the package, e.g.
 
 ```latex
