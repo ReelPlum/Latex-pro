@@ -3,6 +3,7 @@
 \documentclass{article}
 \usepackage{amsmath,amsthm,amssymb}   % already loaded before latex-pro
 \usepackage[dvipsnames]{xcolor}       % xcolor with options
+\usepackage[most]{tcolorbox}          % tcolorbox with libraries, before
 \usepackage{latex-pro}
 \usepackage{mathtools}                % loaded again after: no clash
 \usepackage{hyperref}
@@ -14,4 +15,10 @@
   {\textnormal{\textsc{Lemma}}~\textnormal{\textbf{1}}}
 \lpsame{R with amssymb loaded first}{\R}{\mathbb{R}}
 \lpsame{bmat with amsmath loaded first}{\bmat{1}}{\begin{bmatrix}1\end{bmatrix}}
+% code boxes with the document's own tcolorbox and hyperref
+\python{code/sample.py}
+\begin{pythoncode}
+x = 1
+\end{pythoncode}
+\lpdefined{python with tcolorbox loaded first}{\python}
 \end{document}
