@@ -34,16 +34,20 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\partialdiff{t}` | ∂/∂t (operator, no function) |
 | `\hessian{3}` | the 3×3 Hessian of f at v, every entry ∂²f(v)/∂xᵢ∂xⱼ written out |
 | `\hessian{n}` | the general n×n Hessian with ⋯ ⋮ ⋱ |
-| `\hessian[g][y]{2}` | Hessian of g in variables y₁, y₂ |
-| `\hessian[f][x][\mathbf{a}]{2}` | Hessian of f at the point **a** |
-| `\hessian[f][x][]{2}` | Hessian with no point, entries ∂²f/∂xᵢ∂xⱼ |
+| `\hessian[y]{2}` | Hessian in variables y₁, y₂ |
+| `\hessian[x,y]{2}` | Hessian in the variables x and y (entries ∂²f(v)/∂x∂y, …) |
+| `\hessian[y][g]{n}` | Hessian of g in y₁,…,yₙ |
+| `\hessian[x][f][\mathbf{a}]{2}` | Hessian of f at the point **a** |
+| `\hessian[x][f][]{2}` | Hessian with no point, entries ∂²f/∂xᵢ∂xⱼ |
 | `\idmat{3}` | the 3×3 identity matrix, written out |
 | `\idmat{n}` | the general n×n identity matrix with ⋯ ⋮ ⋱ |
 | `\diff[f]{x}`, `\diff[f]{x,x}` | df/dx, d²f/dx² (same rules as `\partialdiff`, upright d) |
 | `\gradient{3}` | gradient ∇f(v) as a row vector (∂f(v)/∂x₁ ⋯ ∂f(v)/∂x₃), as in the IMO26 notes |
-| `\gradient[g][y][]{n}` | general gradient of g in y₁,…,yₙ, no point |
+| `\gradient[y][g][]{n}` | general gradient of g in y₁,…,yₙ, no point |
+| `\gradient[x,y,z]{}` | gradient in the variables x, y, z |
 | `\jacobian{2}{3}` | 2×3 derivative matrix f′(v), entries ∂fᵢ(v)/∂xⱼ |
-| `\jacobian[f][x][]{m}{n}` | general m×n derivative matrix, no point |
+| `\jacobian[x,y]{2}{}` | 2×2 derivative matrix in the variables x, y |
+| `\jacobian[x][f][]{m}{n}` | general m×n derivative matrix, no point |
 | `\colvec{n}`, `\colvec[v]{3}` | column vector (x₁,…,xₙ) / (v₁,v₂,v₃) |
 | `\rowvec[w]{4}` | row vector [w₁ w₂ w₃ w₄] |
 | `\rowvec[x,y]`, `\rowvec[1, 2]` | row vector with exactly those entries, printed with commas: (x, y), (1, 2) |
@@ -76,7 +80,10 @@ Notes:
 - `\partialdiff` collapses *consecutive* repeats into powers, so `{x,x,y}`
   gives ∂x²∂y, while `{x,y,x}` keeps the order you wrote. The total order
   goes on the ∂ in the numerator.
-- `\hessian[function][variable][point]{dimension}` defaults to `f`, `x` and `v`.
+- `\hessian[variables][function][point]{dimension}` defaults to `x`, `f` and `v`;
+  `\gradient` and `\jacobian` take the same options. The variables are either
+  one symbol, `[y]` → y₁, y₂, …, or a list, `[x,y,z]` → exactly x, y, z (then the
+  size comes from the list and `{}` is enough).
   Pass an empty `[]` as the point to leave it out. Its
   entries are built with `\partialdiff` and the matrix with `\mat`.
 - **Bracket style.** Every matrix command (`\hessian`, `\idmat`, `\gradient`,
