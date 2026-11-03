@@ -13,13 +13,24 @@
 %                                  pass [] as the third option to drop it).
 %   \idmat{n}                      identity matrix; n a number -> written
 %                                  out, otherwise general form with dots.
-%                                  n a number -> every entry written out,
-%                                  otherwise the general n x n form with dots.
+%
+% Theorems and bold references
+%   \begin{proposition} ... \end{proposition}   numbered environment
+%   \proposition{prop:main}        bold "Proposition 3" (label -> its number)
+%   \proposition{3}                bold "Proposition 3" (number written as is)
+%   Same for theorem, lemma, corollary, definition, exercise, example, remark.
+%   All share one counter. Option [bysection] numbers them 2.1, 2.2, ...
+%   Rename with e.g. \renewcommand\propositionname{Sætning}.
 %
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
 \ProvidesPackage{latex-pro}[2026/11/03 v0.1 Maths shortcut commands]
 
+\newif\iflatexpro@bysection
+\DeclareOption{bysection}{\latexpro@bysectiontrue}
+\ProcessOptions\relax
+
 \RequirePackage{amsmath}
+\RequirePackage{amsthm}
 
 % ---------------------------------------------------------------------------
 % Matrices
@@ -194,6 +205,73 @@
   }
 \NewDocumentCommand \idmat { m } { \mathsc_idmat:n {#1} }
 
+\ExplSyntaxOff
+
+% ---------------------------------------------------------------------------
+% Theorem environments and bold references
+% ---------------------------------------------------------------------------
+% \proposition{x} is a reference, \begin{proposition} is the environment:
+% the env/<name>/begin hook raises a flag just before \begin calls
+% \proposition, so the one command can tell which use it is.
+\newcounter{latexprothm}
+\iflatexpro@bysection \counterwithin{latexprothm}{section} \fi
+\newif\iflatexpro@envstart
+
+% #1 = reference text (bold), #2 = label
+\newcommand\latexpro@reflink[2]{\textbf{#1}}
+\AtBeginDocument{%
+  \@ifpackageloaded{hyperref}%
+    {\renewcommand\latexpro@reflink[2]{\hyperref[#2]{\textbf{#1}}}}{}}
+
+\ExplSyntaxOn
+% #1 = kind (proposition, ...), #2 = label or literal number
+\cs_new_protected:Npn \latexpro_thmref:nn #1#2
+  {
+    \cs_if_exist:cTF { r@#2 }
+      { \latexpro_thmref_label:nn {#1} {#2} }
+      {
+        \regex_match:nnTF { \A \s* [0-9]+ (\.[0-9]+)* \s* \Z } {#2}
+          { \textbf { \mbox { \use:c { #1name } } \nobreakspace #2 } }
+          { \latexpro_thmref_label:nn {#1} {#2} }
+      }
+  }
+\cs_new_protected:Npn \latexpro_thmref_label:nn #1#2
+  {
+    \latexpro@reflink
+      { \mbox { \use:c { #1name } } \nobreakspace
+        \cs_if_exist:NTF \hyperref { \ref*{#2} } { \ref{#2} } }
+      {#2}
+  }
+
+% #1 = kind, #2 = printed name, #3 = amsthm style
+\cs_new_protected:Npn \latexpro_newthm:nnn #1#2#3
+  {
+    \cs_if_exist:cF { #1name } { \cs_new:cpn { #1name } {#2} }
+    \theoremstyle {#3}
+    \newtheorem { latexpro@#1 } [ latexprothm ] { \use:c { #1name } }
+    \AddToHook { env/#1/begin } { \latexpro@envstarttrue }
+    \exp_args:Nc \NewDocumentCommand { #1 } { }
+      {
+        \iflatexpro@envstart
+          \latexpro@envstartfalse
+          \exp_after:wN \use_i:nn
+        \else
+          \exp_after:wN \use_ii:nn
+        \fi
+          { \use:c { latexpro@#1 } }
+          { \latexpro_thmref:nn {#1} }
+      }
+    \cs_new_protected:cpn { end#1 } { \use:c { endlatexpro@#1 } }
+  }
+
+\latexpro_newthm:nnn { theorem }     { Theorem }     { plain }
+\latexpro_newthm:nnn { proposition } { Proposition } { plain }
+\latexpro_newthm:nnn { lemma }       { Lemma }       { plain }
+\latexpro_newthm:nnn { corollary }   { Corollary }   { plain }
+\latexpro_newthm:nnn { definition }  { Definition }  { definition }
+\latexpro_newthm:nnn { exercise }    { Exercise }    { definition }
+\latexpro_newthm:nnn { example }     { Example }     { definition }
+\latexpro_newthm:nnn { remark }      { Remark }      { remark }
 \ExplSyntaxOff
 
 \endinput
