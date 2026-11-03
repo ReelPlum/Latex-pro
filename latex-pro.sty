@@ -19,10 +19,10 @@
 %   \idmat{n}                      identity matrix; n a number -> written
 %                                  out, otherwise general form with dots.
 %
-% Theorems and bold references
+% Theorems and small-caps references
 %   \begin{proposition} ... \end{proposition}   numbered environment
-%   \proposition{prop:main}        bold "Proposition 3" (label -> its number)
-%   \proposition{3}                bold "Proposition 3" (number written as is)
+%   \proposition{prop:main}        small caps "Proposition 3" (label -> number)
+%   \proposition{3}                small caps "Proposition 3" (number as is)
 %   Same for theorem, lemma, corollary, definition, exercise, example, remark.
 %   All share one counter. Option [bysection] numbers them 2.1, 2.2, ...
 %   Rename with e.g. \renewcommand\propositionname{Sætning}.
@@ -567,7 +567,7 @@
 \ExplSyntaxOff
 
 % ---------------------------------------------------------------------------
-% Theorem environments and bold references
+% Theorem environments and small-caps references
 % ---------------------------------------------------------------------------
 % \proposition{x} is a reference, \begin{proposition} is the environment:
 % the env/<name>/begin hook raises a flag just before \begin calls
@@ -576,11 +576,15 @@
 \iflatexpro@bysection \counterwithin{latexprothm}{section} \fi
 \newif\iflatexpro@envstart
 
-% #1 = reference text (bold), #2 = label
-\newcommand\latexpro@reflink[2]{\textbf{#1}}
+% Look of the reference text; redefine to taste, e.g.
+%   \renewcommand\latexprorefstyle[1]{\textbf{#1}}
+% \textnormal keeps it upright small caps inside italic theorem text.
+\newcommand\latexprorefstyle[1]{\textnormal{\textsc{#1}}}
+% #1 = reference text, #2 = label
+\newcommand\latexpro@reflink[2]{\latexprorefstyle{#1}}
 \AtBeginDocument{%
   \@ifpackageloaded{hyperref}%
-    {\renewcommand\latexpro@reflink[2]{\hyperref[#2]{\textbf{#1}}}}{}}
+    {\renewcommand\latexpro@reflink[2]{\hyperref[#2]{\latexprorefstyle{#1}}}}{}}
 
 \ExplSyntaxOn
 % #1 = kind (proposition, ...), #2 = label or literal number
@@ -590,7 +594,7 @@
       { \latexpro_thmref_label:nn {#1} {#2} }
       {
         \regex_match:nnTF { \A \s* [0-9]+ (\.[0-9]+)* \s* \Z } {#2}
-          { \textbf { \mbox { \use:c { #1name } } \nobreakspace #2 } }
+          { \latexprorefstyle { \mbox { \use:c { #1name } } \nobreakspace #2 } }
           { \latexpro_thmref_label:nn {#1} {#2} }
       }
   }
