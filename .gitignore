@@ -1,6 +1,43 @@
+# Build output of tests/run.sh (tests and example PDFs; CI uploads these)
+build/
+
+# Built PDFs are never committed: they change on every edit and cause merge
+# conflicts. Download them from the "pdfs" artifact of the Tests workflow,
+# or run tests/run.sh.
+*.pdf
+
+# LaTeX auxiliary files
 *.aux
 *.log
 *.out
-*.synctex.gz
-*.fdb_latexmk
+*.toc
+*.lof
+*.lot
 *.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.synctex
+*.dvi
+*.xdv
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.idx
+*.ilg
+*.ind
+*.nav
+*.snm
+*.vrb
+*.thm
+*.listing
+*.pyg
+_minted*/
+
+# Editors and OS
+.DS_Store
+*~
+*.swp
+.vscode/
+.idea/

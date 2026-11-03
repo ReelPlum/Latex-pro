@@ -1,0 +1,17 @@
+% latex-pro together with packages people often load around it.
+% Regression: loading order and option clashes in the preamble.
+\documentclass{article}
+\usepackage{amsmath,amsthm,amssymb}   % already loaded before latex-pro
+\usepackage[dvipsnames]{xcolor}       % xcolor with options
+\usepackage{latex-pro}
+\usepackage{mathtools}                % loaded again after: no clash
+\usepackage{hyperref}
+\usepackage{lptest}
+\begin{document}
+\begin{lemma}\label{lem:h} With hyperref. \end{lemma}
+\lpref{label with hyperref}{lem:h}{1}
+\lpsametext{reference with hyperref}{\lemma{lem:h}}
+  {\textnormal{\textsc{Lemma}}~\textnormal{\textbf{1}}}
+\lpsame{R with amssymb loaded first}{\R}{\mathbb{R}}
+\lpsame{bmat with amsmath loaded first}{\bmat{1}}{\begin{bmatrix}1\end{bmatrix}}
+\end{document}
