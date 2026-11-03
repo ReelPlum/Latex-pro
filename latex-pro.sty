@@ -30,6 +30,7 @@
 %   \gradient[f][x][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v
 %   \jacobian[f][x][v]{m}{n}       m x n derivative matrix of f = (f_1..f_m)
 %   \colvec[x]{n}  \rowvec[x]{n}   vector (x_1, ..., x_n) as column / row
+%   \colvec[x,y]  \rowvec[1, 2]   vector with exactly the listed entries
 %   \genmat[a]{m}{n}               general m x n matrix with entries a_ij
 %   \symmat[a]{n}                  general symmetric matrix (a_ji below diag)
 %   \symmat{e & 0 \\ 0 & d}        symmetric matrix from all its rows ...
@@ -276,26 +277,52 @@
 % Vectors, general matrices and the gradient
 % ---------------------------------------------------------------------------
 % \colvec[x]{n}: column vector (x_1, ..., x_n)
-\NewDocumentCommand \colvec { O{x} m }
+% \colvec[x,y]  / \colvec[1, 2]: column vector with exactly those entries
+% \rowvec works the same way for row vectors.
+% A list is used when the option has a comma or no size {n} follows.
+% #1 = option, #2 = size (empty: none given), #3 = column (c) / row (r)
+\cs_new_protected:Npn \mathsc_vec:nnn #1#2#3
   {
     \group_begin:
-      \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##1} }
       \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
-      \__mathsc_grid:nn {#2} { 1 }
+      \bool_set_false:N \l__mathsc_explicit_bool
+      \tl_if_empty:nT {#2} { \bool_set_true:N \l__mathsc_explicit_bool }
+      \tl_if_in:nnT {#1} { , } { \bool_set_true:N \l__mathsc_explicit_bool }
+      \bool_if:NTF \l__mathsc_explicit_bool
+        {
+          \seq_set_from_clist:Nn \l__mathsc_items_seq {#1}
+          \tl_set:Ne \l__mathsc_body_tl
+            {
+              \str_if_eq:nnTF {#3} { c }
+                { \seq_use:Nn \l__mathsc_items_seq { \\ } }
+                { \seq_use:Nn \l__mathsc_items_seq { & } }
+            }
+        }
+        {
+          \str_if_eq:nnTF {#3} { c }
+            {
+              \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##1} }
+              \__mathsc_grid:nn {#2} { 1 }
+            }
+            {
+              \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##2} }
+              \__mathsc_grid:nn { 1 } {#2}
+            }
+        }
       \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
-
-% \rowvec[x]{n}: row vector (x_1 ... x_n)
-\NewDocumentCommand \rowvec { O{x} m }
+% the size {n} is optional: look for a following brace group
+\cs_new_protected:Npn \__mathsc_vec_peek:nn #1#2
   {
-    \group_begin:
-      \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##2} }
-      \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
-      \__mathsc_grid:nn { 1 } {#2}
-      \exp_args:NV \mat \l__mathsc_body_tl
-    \group_end:
+    \peek_catcode:NTF \c_group_begin_token
+      { \__mathsc_vec_size:nnn {#1} {#2} }
+      { \mathsc_vec:nnn {#1} { } {#2} }
   }
+\cs_new_protected:Npn \__mathsc_vec_size:nnn #1#2#3
+  { \mathsc_vec:nnn {#1} {#3} {#2} }
+\NewDocumentCommand \colvec { O{x} } { \__mathsc_vec_peek:nn {#1} { c } }
+\NewDocumentCommand \rowvec { O{x} } { \__mathsc_vec_peek:nn {#1} { r } }
 
 % \genmat[a]{m}{n}: general m x n matrix with entries a_{ij}
 \NewDocumentCommand \genmat { O{a} m m }

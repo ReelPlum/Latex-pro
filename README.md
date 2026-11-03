@@ -46,6 +46,8 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\jacobian[f][x][]{m}{n}` | general m×n derivative matrix, no point |
 | `\colvec{n}`, `\colvec[v]{3}` | column vector (x₁,…,xₙ) / (v₁,v₂,v₃) |
 | `\rowvec[w]{4}` | row vector [w₁ w₂ w₃ w₄] |
+| `\rowvec[x,y]`, `\rowvec[1, 2]` | row vector with exactly those entries (x y), (1 2) |
+| `\colvec[x, y, z]` | column vector with exactly those entries |
 | `\genmat{m}{n}`, `\genmat[b]{2}{3}` | general matrix with entries aᵢⱼ |
 | `\symmat{n}`, `\symmat[s]{3}` | general symmetric matrix, aᵢⱼ above the diagonal and mirrored below |
 | `\symmat{e & 0 \\ 0 & d}` | symmetric matrix from all its rows |
