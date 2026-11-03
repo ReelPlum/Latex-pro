@@ -22,8 +22,8 @@
 %
 % Theorems and small-caps references
 %   \begin{proposition} ... \end{proposition}   numbered environment
-%   \proposition{prop:main}        small caps "Proposition 3" (label -> number)
-%   \proposition{3}                small caps "Proposition 3" (number as is)
+%   \proposition{prop:main}        small caps "Proposition", bold number
+%   \proposition{3}                the same, number written as is
 %   Same for theorem, lemma, corollary, definition, exercise, example, remark.
 %   All share one counter. Option [bysection] numbers them 2.1, 2.2, ...
 %   Rename with e.g. \renewcommand\propositionname{Sætning}.
@@ -611,15 +611,16 @@
 \iflatexpro@bysection \counterwithin{latexprothm}{section} \fi
 \newif\iflatexpro@envstart
 
-% Look of the reference text; redefine to taste, e.g.
-%   \renewcommand\latexprorefstyle[1]{\textbf{#1}}
-% \textnormal keeps it upright small caps inside italic theorem text.
+% Look of the reference: the name ("Proposition") and the number ("3").
+% Redefine to taste, e.g. \renewcommand\latexprorefnumstyle[1]{#1}.
+% \textnormal keeps them upright inside italic theorem text.
 \newcommand\latexprorefstyle[1]{\textnormal{\textsc{#1}}}
-% #1 = reference text, #2 = label
-\newcommand\latexpro@reflink[2]{\latexprorefstyle{#1}}
+\newcommand\latexprorefnumstyle[1]{\textnormal{\textbf{#1}}}
+% #1 = styled reference text, #2 = label
+\newcommand\latexpro@reflink[2]{#1}
 \AtBeginDocument{%
   \@ifpackageloaded{hyperref}%
-    {\renewcommand\latexpro@reflink[2]{\hyperref[#2]{\latexprorefstyle{#1}}}}{}}
+    {\renewcommand\latexpro@reflink[2]{\hyperref[#2]{#1}}}{}}
 
 \ExplSyntaxOn
 % #1 = kind (proposition, ...), #2 = label or literal number
@@ -629,16 +630,24 @@
       { \latexpro_thmref_label:nn {#1} {#2} }
       {
         \regex_match:nnTF { \A \s* [0-9]+ (\.[0-9]+)* \s* \Z } {#2}
-          { \latexprorefstyle { \mbox { \use:c { #1name } } \nobreakspace #2 } }
+          { \latexpro_thmref_text:nn {#1} {#2} }
           { \latexpro_thmref_label:nn {#1} {#2} }
       }
   }
 \cs_new_protected:Npn \latexpro_thmref_label:nn #1#2
   {
     \latexpro@reflink
-      { \mbox { \use:c { #1name } } \nobreakspace
-        \cs_if_exist:NTF \hyperref { \ref*{#2} } { \ref{#2} } }
+      {
+        \latexpro_thmref_text:nn {#1}
+          { \cs_if_exist:NTF \hyperref { \ref*{#2} } { \ref{#2} } }
+      }
       {#2}
+  }
+% #1 = kind, #2 = number
+\cs_new_protected:Npn \latexpro_thmref_text:nn #1#2
+  {
+    \latexprorefstyle { \mbox { \use:c { #1name } } }
+    \nobreakspace \latexprorefnumstyle {#2}
   }
 
 % #1 = kind, #2 = printed name, #3 = amsthm style
