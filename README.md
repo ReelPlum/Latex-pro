@@ -43,6 +43,8 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\colvec{n}`, `\colvec[v]{3}` | column vector (x₁,…,xₙ) / (v₁,v₂,v₃) |
 | `\rowvec[w]{4}` | row vector [w₁ w₂ w₃ w₄] |
 | `\genmat{m}{n}`, `\genmat[b]{2}{3}` | general matrix with entries aᵢⱼ |
+| `\symmat{n}`, `\symmat[s]{3}` | general symmetric matrix, aᵢⱼ above the diagonal and mirrored below |
+| `\symmat{1 & 2 & 3 \\ 4 & 5 \\ 6}` | symmetric matrix from its upper triangle (row by row, diagonal included) |
 | `\N \Z \Q \R` | ℕ ℤ ℚ ℝ |
 | `\norm{x}`, `\abs{x}` | ‖x‖, \|x\| (`\norm*{…}` grows with the contents) |
 | `\inner{u}{v}` | ⟨u, v⟩ |
@@ -63,7 +65,7 @@ Notes:
 - `\hessian[function][variable][point]{dimension}` defaults to `f`, `x` and `v`.
   Pass an empty `[]` as the point to leave it out. Its
   entries are built with `\partialdiff` and the matrix with `\bmat`.
-- `\hessian`, `\idmat`, `\gradient`, `\colvec`, `\rowvec` and `\genmat` share one
+- `\hessian`, `\idmat`, `\gradient`, `\colvec`, `\rowvec`, `\genmat` and `\symmat` share one
   matrix builder, so a number writes every entry and anything else (`n`, `m`, …)
   gives the dotted general form.
 - The package now loads `amssymb` and `mathtools` (for ℝ and the auto-sizing
