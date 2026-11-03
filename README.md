@@ -38,8 +38,10 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\idmat{3}` | the 3×3 identity matrix, written out |
 | `\idmat{n}` | the general n×n identity matrix with ⋯ ⋮ ⋱ |
 | `\diff[f]{x}`, `\diff[f]{x,x}` | df/dx, d²f/dx² (same rules as `\partialdiff`, upright d) |
-| `\gradient{3}` | gradient of f at v as a column vector of ∂f(v)/∂xᵢ |
+| `\gradient{3}` | gradient ∇f(v) as a row vector (∂f(v)/∂x₁ ⋯ ∂f(v)/∂x₃), as in the IMO26 notes |
 | `\gradient[g][y][]{n}` | general gradient of g in y₁,…,yₙ, no point |
+| `\jacobian{2}{3}` | 2×3 derivative matrix f′(v), entries ∂fᵢ(v)/∂xⱼ |
+| `\jacobian[f][x][]{m}{n}` | general m×n derivative matrix, no point |
 | `\colvec{n}`, `\colvec[v]{3}` | column vector (x₁,…,xₙ) / (v₁,v₂,v₃) |
 | `\rowvec[w]{4}` | row vector [w₁ w₂ w₃ w₄] |
 | `\genmat{m}{n}`, `\genmat[b]{2}{3}` | general matrix with entries aᵢⱼ |
@@ -56,6 +58,10 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\argmin_{x \in C} f(x)`, `\argmax` | arg min with the subscript underneath |
 | `\minimize{f(x)}{x \in \R^n \\ Ax \le b}` | min with the constraints stacked under it |
 | `\maximize{c\tp x}{x \ge 0}` | same with max |
+| `\ball{v}{\epsilon}` | open ball B(v, ε) |
+| `\dist{u}{v}` | d(u, v) |
+| `\interior{S}`, `\bd{S}` | interior S°, boundary ∂S |
+| `\Rx`, `\Rx[t]` | polynomials ℝ[x], ℝ[t] |
 
 Notes:
 
@@ -65,7 +71,7 @@ Notes:
 - `\hessian[function][variable][point]{dimension}` defaults to `f`, `x` and `v`.
   Pass an empty `[]` as the point to leave it out. Its
   entries are built with `\partialdiff` and the matrix with `\bmat`.
-- `\hessian`, `\idmat`, `\gradient`, `\colvec`, `\rowvec`, `\genmat` and `\symmat` share one
+- `\hessian`, `\idmat`, `\gradient`, `\jacobian`, `\colvec`, `\rowvec`, `\genmat` and `\symmat` share one
   matrix builder, so a number writes every entry and anything else (`n`, `m`, …)
   gives the dotted general form.
 - The package now loads `amssymb` and `mathtools` (for ℝ and the auto-sizing
