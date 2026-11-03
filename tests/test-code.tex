@@ -1,0 +1,28 @@
+% Tests for latex-pro-code.sty, loaded on its own.
+\documentclass{article}
+\usepackage{latex-pro-code}
+% regression: xcolor with options loaded after the package gives no clash
+\usepackage[dvipsnames]{xcolor}
+\usepackage{lptest}
+\makeatletter
+\newcommand\pseudotmp{\jobname-pseudo.tmp}
+\makeatother
+\begin{document}
+\lpdefined{python}{\python}
+\lpdefined{py}{\py}
+\lpdefined{pseudo}{\pseudo}
+\python{code/sample.py}
+\python*[firstline=1, lastline=2, caption={Part of a file}]{code/sample.py}
+Inline \py{x -= f(x) / df(x)} and \py|a = {1: 2}|.
+\begin{pythoncode}[caption=Typed in]
+print("æøå")  # non-ASCII letters work with pdflatex
+\end{pythoncode}
+
+% \pseudo re-indents the file and turns operators into maths
+\pseudo{code/indent.txt}
+\lpsamefile{pseudo indents by keywords}{\pseudotmp}{code/indent-expected.txt}
+\pseudoindentfalse
+\pseudo*{code/indent.txt}
+\lpsamefile{pseudoindentfalse keeps the indentation}{\pseudotmp}{code/indent-flat-expected.txt}
+\pseudoindenttrue
+\end{document}

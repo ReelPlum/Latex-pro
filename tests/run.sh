@@ -7,7 +7,8 @@
 #
 # A file fails when it does not compile, when an lptest check fails
 # (LPTEST FAIL in the log), or when the final log still has an undefined
-# reference or control sequence. PDFs and logs go to build/.
+# reference or control sequence. Each file is compiled from its own folder,
+# as you would compile it. PDFs and logs go to build/.
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 build="$root/build"
@@ -26,7 +27,7 @@ for tex in "$root"/tests/test-*.tex "$root"/examples/*.tex; do
   [[ -n "$filter" && "$name" != *"$filter"* ]] && continue
   out="$build/$name"
   mkdir -p "$out"
-  if latexmk -pdf -interaction=nonstopmode -halt-on-error -silent \
+  if latexmk -cd -pdf -interaction=nonstopmode -halt-on-error -silent \
        -outdir="$out" -jobname="$name" "$tex" >"$out/latexmk.out" 2>&1; then
     log="$out/$name.log"
     problems="$(grep -E 'LPTEST FAIL|LaTeX Warning: (Reference|There were undefined)|Undefined control sequence|Package latex-pro Warning' "$log")"

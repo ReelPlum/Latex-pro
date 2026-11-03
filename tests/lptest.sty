@@ -9,6 +9,8 @@
 %   \lpref{name}{label}{expected}           \ref{label} must be "expected"
 %                                           (checked once the .aux exists)
 %   \lptrue{name}{<condition>}              e.g. \lptrue{x}{\ifdim\wd0>0pt}
+%   \lpsamefile{name}{file A}{file B}       the two text files must have the
+%                                           same lines (trailing spaces ignored)
 %
 % A failing check writes "LPTEST FAIL: <name>" to the log (and a warning
 % with the number of failures at \end{document}). The run itself goes on,
@@ -64,6 +66,44 @@
       \@car\csname r@#2\endcsname\@nil}%
     \edef\lp@want{#3}%
     \ifx\lp@got\lp@want\lp@ok{#1}\else\lp@bad{#1}{got \lp@got}\fi}}
+
+\ExplSyntaxOn
+\ior_new:N \g__lp_a_ior
+\ior_new:N \g__lp_b_ior
+\seq_new:N \l__lp_a_seq
+\seq_new:N \l__lp_b_seq
+\str_new:N \l__lp_line_str
+\cs_new_protected:Npn \__lp_read:NNn #1#2#3
+  {
+    \seq_clear:N #2
+    \ior_open:Nn #1 {#3}
+    \ior_str_map_inline:Nn #1
+      {
+        \str_set:Nn \l__lp_line_str {##1}
+        \regex_replace_once:nnN { \s+ \Z } { } \l__lp_line_str
+        \seq_put_right:NV #2 \l__lp_line_str
+      }
+    \ior_close:N #1
+    % ignore empty lines at the end
+    \bool_until_do:nn
+      { \seq_if_empty_p:N #2 || ! \tl_if_empty_p:e { \seq_item:Nn #2 { -1 } } }
+      { \seq_pop_right:NN #2 \l_tmpa_tl }
+  }
+\NewDocumentCommand \lpsamefile { m m m }
+  {
+    \__lp_read:NNn \g__lp_a_ior \l__lp_a_seq {#2}
+    \__lp_read:NNn \g__lp_b_ior \l__lp_b_seq {#3}
+    \str_if_eq:eeTF
+      { \seq_use:Nn \l__lp_a_seq { \exp_not:N \lpLINE } }
+      { \seq_use:Nn \l__lp_b_seq { \exp_not:N \lpLINE } }
+      { \lp@ok {#1} }
+      {
+        \lp@bad {#1} { files~differ }
+        \typeout { --- ~ got: } \seq_map_inline:Nn \l__lp_a_seq { \typeout { | ##1 } }
+        \typeout { --- ~ expected: } \seq_map_inline:Nn \l__lp_b_seq { \typeout { | ##1 } }
+      }
+  }
+\ExplSyntaxOff
 
 \AtEndDocument{%
   \typeout{LPTEST SUMMARY: \the\lp@pass\space passed, \the\lp@fail\space failed}%
