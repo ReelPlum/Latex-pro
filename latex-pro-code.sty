@@ -9,6 +9,8 @@
 %   \python[caption=Solver]{f.py}  caption/title go in the header bar, any
 %                                  other listings option, e.g. firstline=5
 %   \python*{f.py}                 same, without line numbers
+%   \python[span]{f.py}            let a long listing break across pages
+%                                  (default: the box is kept in one piece)
 %   \begin{pythoncode} ... \end{pythoncode}   Python typed in the .tex file
 %   \py{x = 1}                     short inline Python inside a sentence
 %   \pseudo{algo.txt}              include a pseudocode .txt file: keywords
@@ -59,7 +61,6 @@
   \providecolor{latexpro@comment}{HTML}{6E7781}%
   \providecolor{latexpro@number}{HTML}{8C959F}%
   \tcbset{latexpro-code/.style={
-    breakable,
     colback=latexpro@codebg, colframe=latexpro@codeframe,
     colbacktitle=latexpro@codebg, coltitle=latexpro@header,
     fonttitle=\sffamily\small,
@@ -129,10 +130,22 @@
 % [caption=..] / [title=..] go in the header bar, every other option to listings
 \tl_new:N \l__latexpro_code_caption_tl
 \clist_new:N \l__latexpro_code_lst_clist
+\bool_new:N \l__latexpro_code_span_bool
 \keys_define:nn { latexpro / code }
   {
     caption .tl_set:N = \l__latexpro_code_caption_tl ,
     title   .tl_set:N = \l__latexpro_code_caption_tl ,
+    % [span]: the box may break across pages (default: kept in one piece)
+    span    .bool_set:N = \l__latexpro_code_span_bool ,
+    span    .default:n  = true ,
+  }
+\AddToHook{begindocument/before}
+  {
+    \tcbset
+      {
+        latexpro-code-span/.code =
+          { \bool_if:NT \l__latexpro_code_span_bool { \pgfkeysalso { breakable } } }
+      }
   }
 % Function names: every name written as name( or after def / class /
 % function / procedure / algorithm somewhere in the file is coloured as a
@@ -191,12 +204,14 @@
 \cs_new_protected:Npn \__latexpro_code_begin:nnnn #1#2#3#4
   {
     \tl_clear:N \l__latexpro_code_caption_tl
+    \bool_set_false:N \l__latexpro_code_span_bool
     \keys_set_known:nnN { latexpro / code } {#3} \l__latexpro_code_lst_clist
     \tl_if_empty:NT \l__latexpro_code_caption_tl
       { \tl_set:Nn \l__latexpro_code_caption_tl {#4} }
     \tcolorbox
       [
         latexpro-code ,
+        latexpro-code-span ,
         title =
           {
             #1 \hfill
@@ -233,6 +248,7 @@
 \cs_new_protected:Npn \__latexpro_code_opts:n #1
   {
     \tl_clear:N \l__latexpro_code_caption_tl
+    \bool_set_false:N \l__latexpro_code_span_bool
     \keys_set_known:nnN { latexpro / code } {#1} \l__latexpro_code_lst_clist
   }
 % \begin{pythoncode}[options] ... \end{pythoncode}: tcolorbox reads the body
@@ -245,6 +261,7 @@
         latexpro-code ,
         listing~only ,
         code = { \__latexpro_code_opts:n {#1} \global \latexpro@fnfalse } ,
+        latexpro-code-span ,
         before~upper = { \__latexpro_code_harvest:n { \kvtcb@listingfile } } ,
         title =
           {
