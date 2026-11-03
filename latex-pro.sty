@@ -28,7 +28,10 @@
 %   \colvec[x]{n}  \rowvec[x]{n}   vector (x_1, ..., x_n) as column / row
 %   \genmat[a]{m}{n}               general m x n matrix with entries a_ij
 %   \symmat[a]{n}                  general symmetric matrix (a_ji below diag)
-%   \symmat{1 & 2 \\ 3}            symmetric matrix from its upper triangle
+%   \symmat{e & 0 \\ 0 & d}        symmetric matrix from all its rows ...
+%   \symmat{1 & 2 \\ 3}            ... or from just its upper triangle
+%   \symmat[e,d]{2}                diagonal matrix with e, d on the diagonal
+%   \diagmat{e, d}                 same, size taken from the list
 %   \N \Z \Q \R                    number sets (blackboard bold)
 %   \norm{x} \abs{x}               ||x||, |x|   (starred: auto-sized)
 %   \inner{u}{v}                   <u, v>
@@ -338,9 +341,12 @@
 % ---------------------------------------------------------------------------
 % \symmat[a]{n}            general symmetric n x n matrix: a_{ij} on and
 %                          above the diagonal, mirrored (a_{ji}) below it
+% \symmat{e & 0 \\ 0 & d}  give the whole matrix row by row ...
 % \symmat{1 & 2 & 3 \\ 4 & 5 \\ 6}
-%                          give the upper triangle (diagonal included) row by
-%                          row; the lower triangle is filled in by symmetry
+%                          ... or only the upper triangle (diagonal included);
+%                          either way the part below the diagonal is the
+%                          mirror of the part above it, so the result is
+%                          always symmetric
 \prop_new:N \l__mathsc_pos_prop
 \prop_new:N \l__mathsc_entry_prop
 \seq_new:N  \l__mathsc_rows_seq
@@ -348,6 +354,7 @@
 \int_new:N  \l__mathsc_i_int
 \int_new:N  \l__mathsc_j_int
 \bool_new:N \l__mathsc_explicit_bool
+\bool_new:N \l__mathsc_full_bool
 
 % position of an index (1, 2, ..., n) in the index list, for comparing
 \cs_new:Npn \__mathsc_pos:n #1 { \prop_item:Nn \l__mathsc_pos_prop {#1} }
@@ -361,15 +368,25 @@
       \tl_if_in:nnT {#2} { \\ } { \bool_set_true:N \l__mathsc_explicit_bool }
       \bool_if:NTF \l__mathsc_explicit_bool
         {
-          % explicit upper triangle
+          % explicit entries: the full matrix, or just its upper triangle
           \seq_set_split:Nnn \l__mathsc_rows_seq { \\ } {#2}
           \seq_remove_all:Nn \l__mathsc_rows_seq { }
+          % full matrix given <=> last row has n entries
+          \seq_set_split:Nne \l__mathsc_items_seq { & }
+            { \seq_item:Nn \l__mathsc_rows_seq { -1 } }
+          \bool_set:Nn \l__mathsc_full_bool
+            {
+              \int_compare_p:nNn { \seq_count:N \l__mathsc_items_seq }
+                = { \seq_count:N \l__mathsc_rows_seq }
+            }
           \prop_clear:N \l__mathsc_entry_prop
           \int_zero:N \l__mathsc_i_int
           \seq_map_inline:Nn \l__mathsc_rows_seq
             {
               \int_incr:N \l__mathsc_i_int
-              \int_set_eq:NN \l__mathsc_j_int \l__mathsc_i_int
+              \bool_if:NTF \l__mathsc_full_bool
+                { \int_set:Nn \l__mathsc_j_int { 1 } }
+                { \int_set_eq:NN \l__mathsc_j_int \l__mathsc_i_int }
               \seq_set_split:Nnn \l__mathsc_items_seq { & } {##1}
               \seq_map_inline:Nn \l__mathsc_items_seq
                 {
@@ -409,7 +426,49 @@
       \exp_args:NV \bmat \l__mathsc_body_tl
     \group_end:
   }
-\NewDocumentCommand \symmat { O{a} m } { \mathsc_symmat:nn {#1} {#2} }
+% \symmat[e,d]{2}: a comma list in the option gives the diagonal matrix
+% with those entries (0 elsewhere). For a letter size, list the entries for
+% rows 1, 2 and n:  \symmat[d_1,d_2,d_n]{n}
+\prop_new:N \l__mathsc_diag_prop
+\cs_new_protected:Npn \mathsc_symdiag:nn #1#2
+  {
+    \group_begin:
+      \seq_set_from_clist:Nn \l__mathsc_items_seq {#1}
+      \__mathsc_indices:Nn \l__mathsc_idx_seq {#2}
+      \seq_remove_all:Nn \l__mathsc_idx_seq { \q__mathsc_dots }
+      \prop_clear:N \l__mathsc_diag_prop
+      \int_zero:N \l__mathsc_i_int
+      \seq_map_inline:Nn \l__mathsc_idx_seq
+        {
+          \int_incr:N \l__mathsc_i_int
+          \prop_put:Nne \l__mathsc_diag_prop {##1}
+            { \seq_item:Nn \l__mathsc_items_seq { \l__mathsc_i_int } }
+        }
+      \cs_set:Npn \__mathsc_cell:nn ##1##2
+        {
+          \str_if_eq:nnTF {##1} {##2}
+            { \prop_item:Nn \l__mathsc_diag_prop {##1} }
+            { 0 }
+        }
+      \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
+      \__mathsc_square:n {#2}
+      \exp_args:NV \bmat \l__mathsc_body_tl
+    \group_end:
+  }
+\NewDocumentCommand \symmat { O{a} m }
+  {
+    \tl_if_in:nnTF {#1} { , }
+      { \mathsc_symdiag:nn {#1} {#2} }
+      { \mathsc_symmat:nn {#1} {#2} }
+  }
+
+% \diagmat{e, d, ...}: diagonal matrix with the listed entries, 0 elsewhere
+% (same as \symmat[e,d,...]{<number of entries>})
+\NewDocumentCommand \diagmat { m }
+  {
+    \seq_set_from_clist:Nn \l__mathsc_items_seq {#1}
+    \exp_args:Nne \mathsc_symdiag:nn {#1} { \seq_count:N \l__mathsc_items_seq }
+  }
 
 \ExplSyntaxOff
 

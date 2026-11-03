@@ -46,7 +46,11 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\rowvec[w]{4}` | row vector [w₁ w₂ w₃ w₄] |
 | `\genmat{m}{n}`, `\genmat[b]{2}{3}` | general matrix with entries aᵢⱼ |
 | `\symmat{n}`, `\symmat[s]{3}` | general symmetric matrix, aᵢⱼ above the diagonal and mirrored below |
+| `\symmat{e & 0 \\ 0 & d}` | symmetric matrix from all its rows |
 | `\symmat{1 & 2 & 3 \\ 4 & 5 \\ 6}` | symmetric matrix from its upper triangle (row by row, diagonal included) |
+| `\symmat[e,d]{2}` | diagonal matrix with e, d on the diagonal and 0 elsewhere |
+| `\symmat[d_1,d_2,d_n]{n}` | general diagonal matrix (entries for rows 1, 2 and n) |
+| `\diagmat{e, d}` | same as `\symmat[e,d]{2}`, size taken from the list |
 | `\N \Z \Q \R` | ℕ ℤ ℚ ℝ |
 | `\norm{x}`, `\abs{x}` | ‖x‖, \|x\| (`\norm*{…}` grows with the contents) |
 | `\inner{u}{v}` | ⟨u, v⟩ |
