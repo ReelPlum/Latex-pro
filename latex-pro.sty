@@ -12,7 +12,8 @@
 %   \partialdiff[f]{x,y,...}       partial derivative of f w.r.t. the listed
 %                                  variables; consecutive repeats collapse to
 %                                  powers, e.g. {x,x,y} -> d^3 f / dx^2 dy
-%   \hessian[f][x][v]{n}           Hessian matrix of f in n dimensions,
+%   \hessian[x][f][v]{n}           Hessian matrix of f in n dimensions,
+%                                  variables [x] -> x_1..x_n or a list [x,y];
 %                                  evaluated at the point v (default v;
 %                                  pass [] as the third option to drop it).
 %   \idmat{n}                      identity matrix; n a number -> written
@@ -27,8 +28,10 @@
 %   Rename with e.g. \renewcommand\propositionname{Sætning}.
 %   \diff[f]{x,...}                ordinary derivative, same rules as
 %                                  \partialdiff:  d^2 f / dx^2
-%   \gradient[f][x][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v
-%   \jacobian[f][x][v]{m}{n}       m x n derivative matrix of f = (f_1..f_m)
+%   \gradient[x][f][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v
+%   \jacobian[x][f][v]{m}{n}       m x n derivative matrix of f = (f_1..f_m)
+%   (for all three: first option = variables, [y] or a list [x,y,z];
+%    second = function, third = point)
 %   \colvec[x]{n}  \rowvec[x]{n}   vector (x_1, ..., x_n) as column / row
 %   \colvec[x,y]  \rowvec[1, 2]   vector with exactly the listed entries,
 %                                  the row one printed as (1, 2)
@@ -236,26 +239,65 @@
 % ---------------------------------------------------------------------------
 % Hessian
 % ---------------------------------------------------------------------------
-% #1 = function, #2 = variable symbol, #3 = dimension
+% Variables for \hessian, \gradient and \jacobian
+%   [x]      indexed: x_1, x_2, ..., x_n  (the size comes from {n})
+%   [x,y,z]  exactly these variables      (the size is the length of the list)
+% Fills \l__mathsc_var_prop (index -> variable) and \l__mathsc_size_tl.
+\prop_new:N \l__mathsc_var_prop
+\tl_new:N   \l__mathsc_size_tl
+\seq_new:N  \l__mathsc_vlist_seq
+\int_new:N  \l__mathsc_vi_int
+\cs_new_protected:Npn \__mathsc_vars:nn #1#2
+  {
+    \prop_clear:N \l__mathsc_var_prop
+    \tl_if_in:nnTF {#1} { , }
+      {
+        \seq_set_from_clist:Nn \l__mathsc_vlist_seq {#1}
+        \tl_set:Ne \l__mathsc_size_tl { \seq_count:N \l__mathsc_vlist_seq }
+        \int_zero:N \l__mathsc_vi_int
+        \seq_map_inline:Nn \l__mathsc_vlist_seq
+          {
+            \int_incr:N \l__mathsc_vi_int
+            \prop_put:Nen \l__mathsc_var_prop
+              { \int_use:N \l__mathsc_vi_int } {##1}
+          }
+      }
+      {
+        \tl_set:Nn \l__mathsc_size_tl {#2}
+        \__mathsc_indices:Nn \l__mathsc_vlist_seq {#2}
+        \seq_map_inline:Nn \l__mathsc_vlist_seq
+          { \prop_put:Nnn \l__mathsc_var_prop {##1} { #1 \sb {##1} } }
+      }
+  }
+\cs_new:Npn \__mathsc_var:n #1 { \prop_item:Nn \l__mathsc_var_prop {#1} }
+
+% #1 = variables, #2 = function (with point), #3 = dimension
 \cs_new_protected:Npn \mathsc_hessian:nnn #1#2#3
   {
     \group_begin:
+      \__mathsc_vars:nn {#1} {#3}
       \cs_set:Npn \__mathsc_cell:nn ##1##2
-        { \exp_not:n { \partialdiff [#1] { #2 \sb {##1} , #2 \sb {##2} } } }
+        {
+          \exp_not:n { \partialdiff [#2] }
+            { \__mathsc_var:n {##1} , \__mathsc_var:n {##2} }
+        }
       \tl_set:Nn \l__mathsc_rowsep_tl
         { \\ \noalign { \skip_vertical:n { 1ex } } }
-      \__mathsc_square:n {#3}
+      \exp_args:NV \__mathsc_square:n \l__mathsc_size_tl
       \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
       \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 
-% \hessian[f][x][v]{n}  -- third optional = point; [] leaves it out
-\NewDocumentCommand \hessian { O{f} O{x} O{v} m }
+% \hessian[x][f][v]{n}
+%   1st option = variables: [y] -> y_1..y_n, [x,y] -> x and y (default x)
+%   2nd option = function (default f)
+%   3rd option = point (default v); [] leaves it out
+\NewDocumentCommand \hessian { O{x} O{f} O{v} m }
   {
     \tl_if_blank:nTF {#3}
       { \mathsc_hessian:nnn {#1} {#2} {#4} }
-      { \mathsc_hessian:nnn { #1 ( #3 ) } {#2} {#4} }
+      { \mathsc_hessian:nnn {#1} { #2 ( #3 ) } {#4} }
   }
 
 % ---------------------------------------------------------------------------
@@ -337,45 +379,51 @@
     \group_end:
   }
 
-% \gradient[f][x][v]{n}: row vector of partial derivatives at v, in round
+% \gradient[x][f][v]{n}: row vector of partial derivatives at v, in round
 % brackets (current matrix style), as the IMO26 notes write the gradient (it is the 1 x n
 % derivative f'(v))
+% #1 = variables, #2 = function (with point), #3 = dimension
 \cs_new_protected:Npn \mathsc_gradient:nnn #1#2#3
   {
     \group_begin:
+      \__mathsc_vars:nn {#1} {#3}
       \cs_set:Npn \__mathsc_cell:nn ##1##2
-        { \exp_not:n { \partialdiff [#1] { #2 \sb {##2} } } }
+        { \exp_not:n { \partialdiff [#2] } { \__mathsc_var:n {##2} } }
       \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
-      \__mathsc_grid:nn { 1 } {#3}
+      \exp_args:Nne \__mathsc_grid:nn { 1 } { \l__mathsc_size_tl }
       \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
       \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
-\NewDocumentCommand \gradient { O{f} O{x} O{v} m }
+% \gradient[x][f][v]{n}: options as for \hessian
+\NewDocumentCommand \gradient { O{x} O{f} O{v} m }
   {
     \tl_if_blank:nTF {#3}
       { \mathsc_gradient:nnn {#1} {#2} {#4} }
-      { \mathsc_gradient:nnn { #1 ( #3 ) } {#2} {#4} }
+      { \mathsc_gradient:nnn {#1} { #2 ( #3 ) } {#4} }
   }
 
-% \jacobian[f][x][v]{m}{n}: the m x n derivative matrix f'(v) of
-% f = (f_1, ..., f_m), entries d f_i(v) / d x_j
+% \jacobian[x][f][v]{m}{n}: the m x n derivative matrix f'(v) of
+% f = (f_1, ..., f_m), entries d f_i(v) / d x_j. Options as for \hessian;
+% with a list [x,y,z] the number of columns is the length of the list.
+% #1 = variables, #2 = function, #3 = "(point)" or empty, #4 = m, #5 = n
 \cs_new_protected:Npn \mathsc_jacobian:nnnnn #1#2#3#4#5
   {
     \group_begin:
+      \__mathsc_vars:nn {#1} {#5}
       \cs_set:Npn \__mathsc_cell:nn ##1##2
         {
-          \exp_not:n { \partialdiff } [ \exp_not:n {#1} \sb {##1} \exp_not:n {#3} ]
-            { \exp_not:n {#2} \sb {##2} }
+          \exp_not:n { \partialdiff } [ \exp_not:n {#2} \sb {##1} \exp_not:n {#3} ]
+            { \__mathsc_var:n {##2} }
         }
       \tl_set:Nn \l__mathsc_rowsep_tl
         { \\ \noalign { \skip_vertical:n { 1ex } } }
-      \__mathsc_grid:nn {#4} {#5}
+      \exp_args:Nne \__mathsc_grid:nn {#4} { \l__mathsc_size_tl }
       \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
       \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
-\NewDocumentCommand \jacobian { O{f} O{x} O{v} m m }
+\NewDocumentCommand \jacobian { O{x} O{f} O{v} m m }
   {
     \tl_if_blank:nTF {#3}
       { \mathsc_jacobian:nnnnn {#1} {#2} { } {#4} {#5} }
