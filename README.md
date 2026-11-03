@@ -1,23 +1,23 @@
 # Latex-pro
 
 A personal LaTeX library of maths shortcut commands, packaged as
-`mathshortcuts.sty`.
+`latex-pro.sty`.
 
 ## Install
 
 **Option A, install once for every project (recommended).** Copy (or symlink)
-`mathshortcuts.sty` into your personal texmf tree, then use
-`\usepackage{mathshortcuts}` anywhere.
+`latex-pro.sty` into your personal texmf tree, then use
+`\usepackage{latex-pro}` anywhere.
 
 | System | Folder |
 | --- | --- |
-| Windows (MiKTeX) | any folder you add under *MiKTeX Console → Settings → Directories*, inside `tex/latex/mathshortcuts/`, then *Tasks → Refresh file name database* |
-| Windows / Linux (TeX Live) | `~/texmf/tex/latex/mathshortcuts/` (find it with `kpsewhich -var-value TEXMFHOME`) |
-| macOS (MacTeX) | `~/Library/texmf/tex/latex/mathshortcuts/` |
+| Windows (MiKTeX) | any folder you add under *MiKTeX Console → Settings → Directories*, inside `tex/latex/latex-pro/`, then *Tasks → Refresh file name database* |
+| Windows / Linux (TeX Live) | `~/texmf/tex/latex/latex-pro/` (find it with `kpsewhich -var-value TEXMFHOME`) |
+| macOS (MacTeX) | `~/Library/texmf/tex/latex/latex-pro/` |
 
 A symlink means `git pull` in this repo updates every project at once.
 
-**Option B, per project.** Put `mathshortcuts.sty` next to your `.tex` file.
+**Option B, per project.** Put `latex-pro.sty` next to your `.tex` file.
 
 ## Commands
 
@@ -35,6 +35,8 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\hessian[g][y]{2}` | Hessian of g in variables y₁, y₂ |
 | `\hessian[f][x][\mathbf{a}]{2}` | Hessian of f at the point **a** |
 | `\hessian[f][x][]{2}` | Hessian with no point, entries ∂²f/∂xᵢ∂xⱼ |
+| `\idmat{3}` | the 3×3 identity matrix, written out |
+| `\idmat{n}` | the general n×n identity matrix with ⋯ ⋮ ⋱ |
 
 Notes:
 
@@ -44,6 +46,8 @@ Notes:
 - `\hessian[function][variable][point]{dimension}` defaults to `f`, `x` and `v`.
   Pass an empty `[]` as the point to leave it out. Its
   entries are built with `\partialdiff` and the matrix with `\bmat`.
+- `\hessian` and `\idmat` share one n×n matrix builder, so a number writes
+  every entry and anything else (`n`, `m`, …) gives the dotted general form.
 
 See `examples/example.tex` for all of the above. Compile it from the
 `examples` folder with `TEXINPUTS=..: pdflatex example.tex`, or after
