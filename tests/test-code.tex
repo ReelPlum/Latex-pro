@@ -3,6 +3,9 @@
 \usepackage{latex-pro-code}
 % regression: xcolor with options loaded after the package gives no clash
 \usepackage[dvipsnames]{xcolor}
+% regression: tcolorbox loaded after the package (it is only loaded at
+% \begin{document} when missing)
+\usepackage{tcolorbox}
 \usepackage{lptest}
 \makeatletter
 \newcommand\pseudotmp{\jobname-pseudo.tmp}
@@ -25,4 +28,40 @@ print("æøå")  # non-ASCII letters work with pdflatex
 \pseudo*{code/indent.txt}
 \lpsamefile{pseudoindentfalse keeps the indentation}{\pseudotmp}{code/indent-flat-expected.txt}
 \pseudoindenttrue
+
+% caption / title go to the header bar, the rest stays listings options
+\ExplSyntaxOn
+\__latexpro_code_opts:n { caption = {Newton's~method}, firstline=2, lastline=5 }
+\lptrue{caption~is~taken~out~of~the~options}
+  { \str_if_eq:eeTF { \tl_to_str:N \l__latexpro_code_caption_tl } { Newton's~method } { \iftrue } { \iffalse } }
+\lptrue{other~options~go~to~listings}
+  { \str_if_eq:eeTF { \clist_use:Nn \l__latexpro_code_lst_clist { ; } } { firstline=\c_left_brace_str 2\c_right_brace_str;lastline=\c_left_brace_str 5\c_right_brace_str } { \iftrue } { \iffalse } }
+\__latexpro_code_opts:n { title = T }
+\lptrue{title~is~the~same~as~caption}
+  { \str_if_eq:eeTF { \l__latexpro_code_caption_tl } { T } { \iftrue } { \iffalse } }
+
+% function names: name( and def/class/function NAME, keywords left out
+\__latexpro_code_harvest:n { code/sample.py }
+\lptrue{function~names~found~in~a~Python~file}
+  { \str_if_eq:eeTF { \seq_use:Nn \l__latexpro_code_names_seq { , } }
+      { newton,range,f,df,abs,RuntimeError } { \iftrue } { \iffalse } }
+\cs_new_protected:Npn \__test_has:n #1
+  {
+    \str_set:Nn \l_tmpa_str {#1}
+    \seq_if_in:NVTF \l__latexpro_code_names_seq \l_tmpa_str
+      { \bool_set_true:N \l_tmpa_bool } { \bool_set_false:N \l_tmpa_bool }
+  }
+\__latexpro_code_harvest:n { code/indent.txt }
+\__test_has:n { search }
+\lptrue{function~names~found~in~pseudocode}
+  { \bool_if:NTF \l_tmpa_bool { \iftrue } { \iffalse } }
+\__latexpro_code_harvest:n { code/sample.py }
+\__test_has:n { if }
+\lptrue{keywords~before~a~parenthesis~are~not~function~names}
+  { \bool_if:NTF \l_tmpa_bool { \iffalse } { \iftrue } }
+\ExplSyntaxOff
+
+% a listing longer than a page breaks across pages inside its box
+\python{code/long.py}
+\lptrue{long listing breaks across pages}{\ifnum\value{page}>2 }
 \end{document}

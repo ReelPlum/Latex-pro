@@ -16,7 +16,7 @@ relative to the main `.tex` file.
 
 | Command | Result |
 | --- | --- |
-| `\python[opts]{file.py}` | the file as syntax-highlighted Python in a light grey box |
+| `\python[opts]{file.py}` | the file as syntax-highlighted Python in an IDE-style box |
 | `\python*{file.py}` | the same without line numbers |
 | `\begin{pythoncode} ... \end{pythoncode}` | Python typed straight into the `.tex` file, same look |
 | `\py{x = 1}` | a short piece of Python inline in a sentence |
@@ -24,12 +24,38 @@ relative to the main `.tex` file.
 | `\pseudo*{file.txt}` | the same without line numbers |
 | `\pseudoindentfalse` | from here on, keep the file's own indentation (`\pseudoindenttrue` turns it back on) |
 
-`opts` is any `listings` option: `caption`, `label`, `firstline`,
-`lastline`, `numbers=none`, `basicstyle=\footnotesize\ttfamily`, …
+`opts` is any `listings` option (`firstline`, `lastline`, `numbers=none`,
+…). `caption={…}` (or `title={…}`) is shown on the right of the header bar;
+without it the header shows the file name.
+
+### Look
+
+Every block is a rounded light-grey box with a header bar naming the
+language (*Python* / *Pseudocode*) and a rule under it, in a monospace font
+with GitHub-light colours, like a code block in an editor:
+
+| What | Colour |
+| --- | --- |
+| keywords (`def`, `for`, `if`, `return`, `then`, …) and operators (`=`, `+`, `**`, …) | red |
+| function names: a name after `def`/`class`/`function`, or used as `name(` anywhere in the file, and built-ins such as `print`, `range`, `len` | purple |
+| `True`, `False`, `None`, `self` (pseudocode: `true`, `false`, `null`) | blue |
+| strings | dark blue |
+| comments | grey italic |
+
+Long listings break across pages inside the box. Nothing needs
+`-shell-escape`. Change the look after loading the package, e.g.
+
+```latex
+\definecolor{latexpro@keyword}{HTML}{D73A49}   % other colours: latexpro@function,
+                                               % @builtin, @constant, @string,
+                                               % @comment, @codebg, @codeframe
+\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}
+\tcbset{latexpro-code/.append style={arc=0pt}}  % square corners
+```
 
 What `\pseudo` does with the file:
 
-- **Keywords in bold**, case-insensitive: `function procedure algorithm
+- **Keywords highlighted**, case-insensitive: `function procedure algorithm
   return if then else elseif end for foreach each to downto by step do in
   while repeat until loop break continue and or not true false null print
   input output let call begin …`. `// …` and `/* … */` are comments.
@@ -65,8 +91,9 @@ Notes:
 
 - `\pseudo` writes the re-indented copy to `<jobname>-pseudo.tmp` next to
   your PDF; it is safe to delete.
-- The package loads `listings`, and `xcolor` at `\begin{document}` if you
-  have not loaded it yourself, so `\usepackage[dvipsnames]{xcolor}` etc. still
+- The package loads `listings`, and `xcolor` and `tcolorbox` at
+  `\begin{document}` if you have not loaded them yourself, so
+  `\usepackage[dvipsnames]{xcolor}` or `\usepackage[most]{tcolorbox}` still
   works anywhere in your preamble.
 - Common non-ASCII letters (æ ø å ä ö ü é ß, – — “ ” …) in the code and
   comments are handled under pdflatex. Other unusual characters in a file
