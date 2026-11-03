@@ -23,7 +23,8 @@
 %   Rename with e.g. \renewcommand\propositionname{Sætning}.
 %   \diff[f]{x,...}                ordinary derivative, same rules as
 %                                  \partialdiff:  d^2 f / dx^2
-%   \gradient[f][x][v]{n}          gradient column vector of partials at v
+%   \gradient[f][x][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v
+%   \jacobian[f][x][v]{m}{n}       m x n derivative matrix of f = (f_1..f_m)
 %   \colvec[x]{n}  \rowvec[x]{n}   vector (x_1, ..., x_n) as column / row
 %   \genmat[a]{m}{n}               general m x n matrix with entries a_ij
 %   \symmat[a]{n}                  general symmetric matrix (a_ji below diag)
@@ -39,8 +40,12 @@
 %   \argmin \argmax                operators, subscripts go underneath
 %   \minimize{f(x)}{x \in C \\ ...} min with stacked constraints below
 %   \maximize{f(x)}{...}           same with max
+%   \ball{v}{r}  \dist{u}{v}       B(v, r), d(u, v)
+%   \interior{S}  \bd{S}           interior S°, boundary dS
+%   \Rx  \Rx[t]                    polynomials R[x], R[t]
 %
-%   For \hessian, \idmat, \gradient, \colvec, \rowvec, \genmat, \symmat a number
+%   For \hessian, \idmat, \gradient, \jacobian, \colvec, \rowvec, \genmat,
+%   \symmat a number
 %   writes every entry, anything else (n, m, ...) gives the dotted form.
 %
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
@@ -139,7 +144,7 @@
   }
 
 % ---------------------------------------------------------------------------
-% Matrix builder (shared by \hessian, \idmat, \gradient, \colvec, \genmat)
+% Matrix builder (shared by \hessian, \idmat, \gradient, \jacobian, \colvec, \genmat, \symmat)
 % ---------------------------------------------------------------------------
 \seq_new:N \l__mathsc_idx_seq
 \tl_new:N  \l__mathsc_body_tl
@@ -283,17 +288,18 @@
     \group_end:
   }
 
-% \gradient[f][x][v]{n}: column vector of partial derivatives at v
+% \gradient[f][x][v]{n}: row vector of partial derivatives at v, in round
+% brackets, as the IMO26 notes write the gradient (it is the 1 x n
+% derivative f'(v))
 \cs_new_protected:Npn \mathsc_gradient:nnn #1#2#3
   {
     \group_begin:
       \cs_set:Npn \__mathsc_cell:nn ##1##2
-        { \exp_not:n { \partialdiff [#1] { #2 \sb {##1} } } }
-      \tl_set:Nn \l__mathsc_rowsep_tl
-        { \\ \noalign { \skip_vertical:n { 1ex } } }
-      \__mathsc_grid:nn {#3} { 1 }
+        { \exp_not:n { \partialdiff [#1] { #2 \sb {##2} } } }
+      \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
+      \__mathsc_grid:nn { 1 } {#3}
       \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \exp_args:NV \pmat \l__mathsc_body_tl
     \group_end:
   }
 \NewDocumentCommand \gradient { O{f} O{x} O{v} m }
@@ -301,6 +307,30 @@
     \tl_if_blank:nTF {#3}
       { \mathsc_gradient:nnn {#1} {#2} {#4} }
       { \mathsc_gradient:nnn { #1 ( #3 ) } {#2} {#4} }
+  }
+
+% \jacobian[f][x][v]{m}{n}: the m x n derivative matrix f'(v) of
+% f = (f_1, ..., f_m), entries d f_i(v) / d x_j
+\cs_new_protected:Npn \mathsc_jacobian:nnnnn #1#2#3#4#5
+  {
+    \group_begin:
+      \cs_set:Npn \__mathsc_cell:nn ##1##2
+        {
+          \exp_not:n { \partialdiff } [ \exp_not:n {#1} \sb {##1} \exp_not:n {#3} ]
+            { \exp_not:n {#2} \sb {##2} }
+        }
+      \tl_set:Nn \l__mathsc_rowsep_tl
+        { \\ \noalign { \skip_vertical:n { 1ex } } }
+      \__mathsc_grid:nn {#4} {#5}
+      \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
+      \exp_args:NV \bmat \l__mathsc_body_tl
+    \group_end:
+  }
+\NewDocumentCommand \jacobian { O{f} O{x} O{v} m m }
+  {
+    \tl_if_blank:nTF {#3}
+      { \mathsc_jacobian:nnnnn {#1} {#2} { } {#4} {#5} }
+      { \mathsc_jacobian:nnnnn {#1} {#2} { (#3) } {#4} {#5} }
   }
 
 % ---------------------------------------------------------------------------
@@ -480,5 +510,18 @@
 % \minimize{f(x)}{x \in C \\ g(x) \le 0}
 \NewDocumentCommand\minimize{mm}{\min_{\substack{#2}}\; #1}
 \NewDocumentCommand\maximize{mm}{\max_{\substack{#2}}\; #1}
+
+% ---------------------------------------------------------------------------
+% Subsets of R^d and polynomials (IMO26 notation)
+% ---------------------------------------------------------------------------
+% \ball{v}{\epsilon} -> B(v, epsilon), the open ball
+\NewDocumentCommand\ball{mm}{B(#1, #2)}
+% \dist{u}{v} -> d(u, v)
+\NewDocumentCommand\dist{mm}{d(#1, #2)}
+% \interior{S} -> S°,  \bd{S} -> boundary \partial S
+\NewDocumentCommand\interior{m}{{#1}^{\circ}}
+\NewDocumentCommand\bd{m}{\partial #1}
+% \Rx -> R[x], polynomials;  \Rx[t] -> R[t]
+\NewDocumentCommand\Rx{O{x}}{\mathbb{R}[#1]}
 
 \endinput
