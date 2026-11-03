@@ -24,6 +24,8 @@ A symlink means `git pull` in this repo updates every project at once.
 | Command | Result |
 | --- | --- |
 | `\bmat{1 & 2 \\ 3 & 4}` | matrix in square brackets (`bmatrix`) |
+| `\mat{1 & 2 \\ 3 & 4}` | matrix in the current bracket style (round by default) |
+| `\usematb`, `\usematp` | switch `\mat` and every matrix command to square / round brackets |
 | `\pmat{a & b \\ c & d}` | matrix in round brackets (`pmatrix`) |
 | `\partialdiff[f]{x}` | ∂f/∂x |
 | `\partialdiff[f]{x,y}` | ∂²f/∂x∂y |
@@ -44,6 +46,8 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\jacobian[f][x][]{m}{n}` | general m×n derivative matrix, no point |
 | `\colvec{n}`, `\colvec[v]{3}` | column vector (x₁,…,xₙ) / (v₁,v₂,v₃) |
 | `\rowvec[w]{4}` | row vector [w₁ w₂ w₃ w₄] |
+| `\rowvec[x,y]`, `\rowvec[1, 2]` | row vector with exactly those entries, printed with commas: (x, y), (1, 2) |
+| `\colvec[x, y, z]` | column vector with exactly those entries |
 | `\genmat{m}{n}`, `\genmat[b]{2}{3}` | general matrix with entries aᵢⱼ |
 | `\symmat{n}`, `\symmat[s]{3}` | general symmetric matrix, aᵢⱼ above the diagonal and mirrored below |
 | `\symmat{e & 0 \\ 0 & d}` | symmetric matrix from all its rows |
@@ -74,7 +78,13 @@ Notes:
   goes on the ∂ in the numerator.
 - `\hessian[function][variable][point]{dimension}` defaults to `f`, `x` and `v`.
   Pass an empty `[]` as the point to leave it out. Its
-  entries are built with `\partialdiff` and the matrix with `\bmat`.
+  entries are built with `\partialdiff` and the matrix with `\mat`.
+- **Bracket style.** Every matrix command (`\hessian`, `\idmat`, `\gradient`,
+  `\jacobian`, `\colvec`, `\rowvec`, `\genmat`, `\symmat`, `\diagmat`) uses
+  round brackets by default. Put `\usematb` at the top of the document (after
+  `\begin{document}` or in the preamble) for square brackets, or load the
+  package as `\usepackage[square]{latex-pro}`. `\usematp` switches back, and
+  inside a group `{\usematb ...}` the change stays local.
 - `\hessian`, `\idmat`, `\gradient`, `\jacobian`, `\colvec`, `\rowvec`, `\genmat` and `\symmat` share one
   matrix builder, so a number writes every entry and anything else (`n`, `m`, …)
   gives the dotted general form.

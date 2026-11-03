@@ -5,6 +5,10 @@
 % Commands
 %   \bmat{a & b \\ c & d}          bmatrix  [ ... ]
 %   \pmat{a & b \\ c & d}          pmatrix  ( ... )
+%   \mat{a & b \\ c & d}           matrix in the current style (default round)
+%   \usematb  \usematp             switch \mat and every matrix command to
+%                                  square / round brackets (default round);
+%                                  or \usepackage[square]{latex-pro}
 %   \partialdiff[f]{x,y,...}       partial derivative of f w.r.t. the listed
 %                                  variables; consecutive repeats collapse to
 %                                  powers, e.g. {x,x,y} -> d^3 f / dx^2 dy
@@ -26,6 +30,8 @@
 %   \gradient[f][x][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v
 %   \jacobian[f][x][v]{m}{n}       m x n derivative matrix of f = (f_1..f_m)
 %   \colvec[x]{n}  \rowvec[x]{n}   vector (x_1, ..., x_n) as column / row
+%   \colvec[x,y]  \rowvec[1, 2]   vector with exactly the listed entries,
+%                                  the row one printed as (1, 2)
 %   \genmat[a]{m}{n}               general m x n matrix with entries a_ij
 %   \symmat[a]{n}                  general symmetric matrix (a_ji below diag)
 %   \symmat{e & 0 \\ 0 & d}        symmetric matrix from all its rows ...
@@ -56,6 +62,10 @@
 
 \newif\iflatexpro@bysection
 \DeclareOption{bysection}{\latexpro@bysectiontrue}
+% bracket style for the built-in matrix commands: round (default) or square
+\def\latexpro@matenv{pmatrix}
+\DeclareOption{round}{\def\latexpro@matenv{pmatrix}}
+\DeclareOption{square}{\def\latexpro@matenv{bmatrix}}
 \ProcessOptions\relax
 
 \RequirePackage{amsmath}
@@ -68,6 +78,16 @@
 % ---------------------------------------------------------------------------
 \NewDocumentCommand\bmat{m}{\begin{bmatrix}#1\end{bmatrix}}
 \NewDocumentCommand\pmat{m}{\begin{pmatrix}#1\end{pmatrix}}
+
+% \mat{...}: matrix in the current bracket style. Every built-in matrix
+% command (\hessian, \idmat, \gradient, \jacobian, \colvec, \rowvec,
+% \genmat, \symmat, \diagmat) uses it.
+%   \usematb    square brackets from here on (or inside a group)
+%   \usematp    round brackets (the default)
+%   \usepackage[square]{latex-pro} sets square brackets for the whole file
+\NewDocumentCommand\mat{m}{\begin{\latexpro@matenv}#1\end{\latexpro@matenv}}
+\NewDocumentCommand\usematb{}{\def\latexpro@matenv{bmatrix}}
+\NewDocumentCommand\usematp{}{\def\latexpro@matenv{pmatrix}}
 
 \ExplSyntaxOn
 
@@ -226,7 +246,7 @@
         { \\ \noalign { \skip_vertical:n { 1ex } } }
       \__mathsc_square:n {#3}
       \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 
@@ -249,7 +269,7 @@
         { \str_if_eq:nnTF {##1} {##2} { 1 } { 0 } }
       \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
       \__mathsc_square:n {#1}
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 \NewDocumentCommand \idmat { m } { \mathsc_idmat:n {#1} }
@@ -258,26 +278,52 @@
 % Vectors, general matrices and the gradient
 % ---------------------------------------------------------------------------
 % \colvec[x]{n}: column vector (x_1, ..., x_n)
-\NewDocumentCommand \colvec { O{x} m }
+% \colvec[x,y]  / \colvec[1, 2]: column vector with exactly those entries
+% \rowvec[x,y] gives the row vector (x, y), commas printed.
+% A list is used when the option has a comma or no size {n} follows.
+% #1 = option, #2 = size (empty: none given), #3 = column (c) / row (r)
+\cs_new_protected:Npn \mathsc_vec:nnn #1#2#3
   {
     \group_begin:
-      \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##1} }
       \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
-      \__mathsc_grid:nn {#2} { 1 }
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \bool_set_false:N \l__mathsc_explicit_bool
+      \tl_if_empty:nT {#2} { \bool_set_true:N \l__mathsc_explicit_bool }
+      \tl_if_in:nnT {#1} { , } { \bool_set_true:N \l__mathsc_explicit_bool }
+      \bool_if:NTF \l__mathsc_explicit_bool
+        {
+          \seq_set_from_clist:Nn \l__mathsc_items_seq {#1}
+          \tl_set:Ne \l__mathsc_body_tl
+            {
+              \str_if_eq:nnTF {#3} { c }
+                { \seq_use:Nn \l__mathsc_items_seq { \\ } }
+                { \seq_use:Nn \l__mathsc_items_seq { , ~ } }
+            }
+        }
+        {
+          \str_if_eq:nnTF {#3} { c }
+            {
+              \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##1} }
+              \__mathsc_grid:nn {#2} { 1 }
+            }
+            {
+              \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##2} }
+              \__mathsc_grid:nn { 1 } {#2}
+            }
+        }
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
-
-% \rowvec[x]{n}: row vector (x_1 ... x_n)
-\NewDocumentCommand \rowvec { O{x} m }
+% the size {n} is optional: look for a following brace group
+\cs_new_protected:Npn \__mathsc_vec_peek:nn #1#2
   {
-    \group_begin:
-      \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##2} }
-      \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
-      \__mathsc_grid:nn { 1 } {#2}
-      \exp_args:NV \bmat \l__mathsc_body_tl
-    \group_end:
+    \peek_catcode:NTF \c_group_begin_token
+      { \__mathsc_vec_size:nnn {#1} {#2} }
+      { \mathsc_vec:nnn {#1} { } {#2} }
   }
+\cs_new_protected:Npn \__mathsc_vec_size:nnn #1#2#3
+  { \mathsc_vec:nnn {#1} {#3} {#2} }
+\NewDocumentCommand \colvec { O{x} } { \__mathsc_vec_peek:nn {#1} { c } }
+\NewDocumentCommand \rowvec { O{x} } { \__mathsc_vec_peek:nn {#1} { r } }
 
 % \genmat[a]{m}{n}: general m x n matrix with entries a_{ij}
 \NewDocumentCommand \genmat { O{a} m m }
@@ -287,12 +333,12 @@
         { \exp_not:n {#1} \sb { ##1 ##2 } }
       \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
       \__mathsc_grid:nn {#2} {#3}
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 
 % \gradient[f][x][v]{n}: row vector of partial derivatives at v, in round
-% brackets, as the IMO26 notes write the gradient (it is the 1 x n
+% brackets (current matrix style), as the IMO26 notes write the gradient (it is the 1 x n
 % derivative f'(v))
 \cs_new_protected:Npn \mathsc_gradient:nnn #1#2#3
   {
@@ -302,7 +348,7 @@
       \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
       \__mathsc_grid:nn { 1 } {#3}
       \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
-      \exp_args:NV \pmat \l__mathsc_body_tl
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 \NewDocumentCommand \gradient { O{f} O{x} O{v} m }
@@ -326,7 +372,7 @@
         { \\ \noalign { \skip_vertical:n { 1ex } } }
       \__mathsc_grid:nn {#4} {#5}
       \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 \NewDocumentCommand \jacobian { O{f} O{x} O{v} m m }
@@ -423,7 +469,7 @@
             }
           \__mathsc_square:n {#2}
         }
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 % \symmat[e,d]{2}: a comma list in the option gives the diagonal matrix
@@ -452,7 +498,7 @@
         }
       \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
       \__mathsc_square:n {#2}
-      \exp_args:NV \bmat \l__mathsc_body_tl
+      \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
 \NewDocumentCommand \symmat { O{a} m }
