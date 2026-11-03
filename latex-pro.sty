@@ -13,13 +13,32 @@
 %                                  pass [] as the third option to drop it).
 %   \idmat{n}                      identity matrix; n a number -> written
 %                                  out, otherwise general form with dots.
-%                                  n a number -> every entry written out,
-%                                  otherwise the general n x n form with dots.
+%   \diff[f]{x,...}                ordinary derivative, same rules as
+%                                  \partialdiff:  d^2 f / dx^2
+%   \gradient[f][x][v]{n}          gradient column vector of partials at v
+%   \colvec[x]{n}  \rowvec[x]{n}   vector (x_1, ..., x_n) as column / row
+%   \genmat[a]{m}{n}               general m x n matrix with entries a_ij
+%   \N \Z \Q \R                    number sets (blackboard bold)
+%   \norm{x} \abs{x}               ||x||, |x|   (starred: auto-sized)
+%   \inner{u}{v}                   <u, v>
+%   \set{1,2,3}                    {1,2,3}
+%   \setof{x \in S}{p(x)}          {x in S | p(x)}
+%   A\tp                           transpose A^T
+%   \map{f}{S}{T}                  f : S -> T
+%   \defeq                         :=
+%   \argmin \argmax                operators, subscripts go underneath
+%   \minimize{f(x)}{x \in C \\ ...} min with stacked constraints below
+%   \maximize{f(x)}{...}           same with max
+%
+%   For \hessian, \idmat, \gradient, \colvec, \rowvec and \genmat a number
+%   writes every entry, anything else (n, m, ...) gives the dotted form.
 %
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
 \ProvidesPackage{latex-pro}[2026/11/03 v0.1 Maths shortcut commands]
 
 \RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathtools}
 
 % ---------------------------------------------------------------------------
 % Matrices
@@ -40,6 +59,8 @@
 \int_new:N  \l__mathsc_order_int
 \tl_new:N   \l__mathsc_frac_tl
 \tl_set:Nn  \l__mathsc_frac_tl { \frac }
+\tl_new:N   \l__mathsc_d_tl
+\tl_set:Nn  \l__mathsc_d_tl { \partial }
 
 % append "\partial <var>^{run}" for the current run of equal variables
 \cs_new_protected:Npn \__mathsc_flush_run:
@@ -48,7 +69,7 @@
       {
         \tl_put_right:Ne \l__mathsc_denom_tl
           {
-            \exp_not:N \partial
+            \exp_not:V \l__mathsc_d_tl
             \exp_not:V \l__mathsc_prev_tl
             \int_compare:nNnT { \l__mathsc_run_int } > { 1 }
               { ^{ \int_use:N \l__mathsc_run_int } }
@@ -80,7 +101,7 @@
       {
         \exp_not:V \l__mathsc_frac_tl
           {
-            \exp_not:N \partial
+            \exp_not:V \l__mathsc_d_tl
             \int_compare:nNnT { \l__mathsc_order_int } > { 1 }
               { ^{ \int_use:N \l__mathsc_order_int } }
             \exp_not:n {#1}
@@ -92,8 +113,18 @@
 \NewDocumentCommand \partialdiff { O{} m }
   { \mathsc_partial:nn {#1} {#2} }
 
+% \diff[f]{x,x}: same as \partialdiff but with an upright d (ordinary
+% derivative), e.g. d^2 f / dx^2
+\NewDocumentCommand \diff { O{} m }
+  {
+    \group_begin:
+      \tl_set:Nn \l__mathsc_d_tl { \mathrm { d } }
+      \mathsc_partial:nn {#1} {#2}
+    \group_end:
+  }
+
 % ---------------------------------------------------------------------------
-% Square n x n matrices (shared by \hessian and \idmat)
+% Matrix builder (shared by \hessian, \idmat, \gradient, \colvec, \genmat)
 % ---------------------------------------------------------------------------
 \seq_new:N \l__mathsc_idx_seq
 \tl_new:N  \l__mathsc_body_tl
@@ -123,25 +154,30 @@
       }
   }
 
-% Build the body of an n x n matrix into \l__mathsc_body_tl.
-% n a number -> all rows/columns; otherwise 1, 2, dots, n.
-\cs_new_protected:Npn \__mathsc_square:n #1
+% Fill seq #1 with the indices for a size #2:
+% a number -> 1, 2, ..., n;  otherwise 1, 2, dots, n.
+\cs_new_protected:Npn \__mathsc_indices:Nn #1#2
   {
-    \regex_match:nnTF { \A \s* \d+ \s* \Z } {#1}
+    \regex_match:nnTF { \A \s* \d+ \s* \Z } {#2}
       {
-        \seq_clear:N \l__mathsc_idx_seq
-        \int_step_inline:nn {#1}
-          { \seq_put_right:Nn \l__mathsc_idx_seq {##1} }
+        \seq_clear:N #1
+        \int_step_inline:nn {#2} { \seq_put_right:Nn #1 {##1} }
       }
-      {
-        \seq_set_split:Nnn \l__mathsc_idx_seq { , }
-          { 1 , 2 , \q__mathsc_dots , #1 }
-      }
+      { \seq_set_split:Nnn #1 { , } { 1 , 2 , \q__mathsc_dots , #2 } }
+  }
+
+% Build the body of an m x n matrix into \l__mathsc_body_tl,
+% one \__mathsc_cell:nn {row} {col} per entry.
+\seq_new:N \l__mathsc_cidx_seq
+\cs_new_protected:Npn \__mathsc_grid:nn #1#2
+  {
+    \__mathsc_indices:Nn \l__mathsc_idx_seq  {#1}
+    \__mathsc_indices:Nn \l__mathsc_cidx_seq {#2}
     \tl_clear:N \l__mathsc_body_tl
     \seq_map_inline:Nn \l__mathsc_idx_seq
       {
         \tl_clear:N \l__mathsc_row_tl
-        \seq_map_inline:Nn \l__mathsc_idx_seq
+        \seq_map_inline:Nn \l__mathsc_cidx_seq
           {
             \tl_if_empty:NF \l__mathsc_row_tl
               { \tl_put_right:Nn \l__mathsc_row_tl { & } }
@@ -152,6 +188,7 @@
         \tl_put_right:NV \l__mathsc_body_tl \l__mathsc_row_tl
       }
   }
+\cs_new_protected:Npn \__mathsc_square:n #1 { \__mathsc_grid:nn {#1} {#1} }
 
 % ---------------------------------------------------------------------------
 % Hessian
@@ -194,6 +231,94 @@
   }
 \NewDocumentCommand \idmat { m } { \mathsc_idmat:n {#1} }
 
+% ---------------------------------------------------------------------------
+% Vectors, general matrices and the gradient
+% ---------------------------------------------------------------------------
+% \colvec[x]{n}: column vector (x_1, ..., x_n)
+\NewDocumentCommand \colvec { O{x} m }
+  {
+    \group_begin:
+      \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##1} }
+      \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
+      \__mathsc_grid:nn {#2} { 1 }
+      \exp_args:NV \bmat \l__mathsc_body_tl
+    \group_end:
+  }
+
+% \rowvec[x]{n}: row vector (x_1 ... x_n)
+\NewDocumentCommand \rowvec { O{x} m }
+  {
+    \group_begin:
+      \cs_set:Npn \__mathsc_cell:nn ##1##2 { \exp_not:n {#1} \sb {##2} }
+      \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
+      \__mathsc_grid:nn { 1 } {#2}
+      \exp_args:NV \bmat \l__mathsc_body_tl
+    \group_end:
+  }
+
+% \genmat[a]{m}{n}: general m x n matrix with entries a_{ij}
+\NewDocumentCommand \genmat { O{a} m m }
+  {
+    \group_begin:
+      \cs_set:Npn \__mathsc_cell:nn ##1##2
+        { \exp_not:n {#1} \sb { ##1 ##2 } }
+      \tl_set:Nn \l__mathsc_rowsep_tl { \\ }
+      \__mathsc_grid:nn {#2} {#3}
+      \exp_args:NV \bmat \l__mathsc_body_tl
+    \group_end:
+  }
+
+% \gradient[f][x][v]{n}: column vector of partial derivatives at v
+\cs_new_protected:Npn \mathsc_gradient:nnn #1#2#3
+  {
+    \group_begin:
+      \cs_set:Npn \__mathsc_cell:nn ##1##2
+        { \exp_not:n { \partialdiff [#1] { #2 \sb {##1} } } }
+      \tl_set:Nn \l__mathsc_rowsep_tl
+        { \\ \noalign { \skip_vertical:n { 1ex } } }
+      \__mathsc_grid:nn {#3} { 1 }
+      \tl_set:Nn \l__mathsc_frac_tl { \dfrac }
+      \exp_args:NV \bmat \l__mathsc_body_tl
+    \group_end:
+  }
+\NewDocumentCommand \gradient { O{f} O{x} O{v} m }
+  {
+    \tl_if_blank:nTF {#3}
+      { \mathsc_gradient:nnn {#1} {#2} {#4} }
+      { \mathsc_gradient:nnn { #1 ( #3 ) } {#2} {#4} }
+  }
+
 \ExplSyntaxOff
+
+% ---------------------------------------------------------------------------
+% Number sets, delimiters, operators
+% ---------------------------------------------------------------------------
+\NewDocumentCommand\N{}{\mathbb{N}}
+\NewDocumentCommand\Z{}{\mathbb{Z}}
+\NewDocumentCommand\Q{}{\mathbb{Q}}
+\NewDocumentCommand\R{}{\mathbb{R}}
+
+% \norm{x}, \abs{x}, \inner{u}{v}, \set{1,2,3}, \setof{x \in S}{p(x)}
+% Starred forms (\norm*{...}) grow with the contents; [\big] etc. fix the size.
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclarePairedDelimiterX\inner[2]{\langle}{\rangle}{#1, #2}
+\DeclarePairedDelimiter\set{\{}{\}}
+\DeclarePairedDelimiterX\setof[2]{\{}{\}}{#1 \;\delimsize\vert\; #2}
+
+% transpose: A\tp -> A^T
+\NewDocumentCommand\tp{}{^{T}}
+% definition: x \defeq y -> x := y
+\NewDocumentCommand\defeq{}{\coloneqq}
+% \map{f}{S}{T} -> f : S -> T
+\NewDocumentCommand\map{mmm}{#1\colon #2\to #3}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+% Optimisation problems, constraints stacked under min/max:
+% \minimize{f(x)}{x \in C \\ g(x) \le 0}
+\NewDocumentCommand\minimize{mm}{\min_{\substack{#2}}\; #1}
+\NewDocumentCommand\maximize{mm}{\max_{\substack{#2}}\; #1}
 
 \endinput
