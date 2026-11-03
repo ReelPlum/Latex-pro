@@ -72,6 +72,38 @@ Notes:
   delimiters). If another package already defines `\R`, `\set`, `\norm` etc.,
   LaTeX will stop with an "already defined" error naming the clash.
 
+## Theorems and references
+
+The package defines numbered environments for **theorem, proposition, lemma,
+corollary, definition, exercise, example** and **remark** (one shared counter,
+so you get Theorem 1, Lemma 2, Proposition 3, …). The command with the same
+name writes a bold reference:
+
+```latex
+\begin{proposition}\label{prop:main}
+  ...
+\end{proposition}
+
+By \proposition{prop:main} and \exercise{ex:limits} ...   % bold "Proposition 1", "Exercise 4"
+See \theorem{3.2} in the course notes.                     % a number is written as is
+```
+
+| Command | Result |
+| --- | --- |
+| `\proposition{label}` | **Proposition 3** (number taken from the label) |
+| `\proposition{3}` | **Proposition 3** (plain number written as is) |
+| `\theorem{…}` `\lemma{…}` `\corollary{…}` `\definition{…}` `\exercise{…}` `\example{…}` `\remark{…}` | the same for each kind |
+
+Notes:
+
+- An unknown label shows **Proposition ??** with the usual LaTeX warning;
+  compile twice as for any `\ref`.
+- With `hyperref` loaded, the whole bold text is a link.
+- `\usepackage[bysection]{latex-pro}` numbers them per section: 2.1, 2.2, …
+- Change the printed words with e.g. `\renewcommand\exercisename{Opgave}`.
+- Since the package defines these environments, remove any
+  `\newtheorem{proposition}{…}` (etc.) lines from your own preamble.
+
 See `examples/example.tex` for all of the above. Compile it from the
 `examples` folder with `TEXINPUTS=..: pdflatex example.tex`, or after
 installing the package (option A).
