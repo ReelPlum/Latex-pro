@@ -30,7 +30,8 @@
 %   \gradient[f][x][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v
 %   \jacobian[f][x][v]{m}{n}       m x n derivative matrix of f = (f_1..f_m)
 %   \colvec[x]{n}  \rowvec[x]{n}   vector (x_1, ..., x_n) as column / row
-%   \colvec[x,y]  \rowvec[1, 2]   vector with exactly the listed entries
+%   \colvec[x,y]  \rowvec[1, 2]   vector with exactly the listed entries,
+%                                  the row one printed as (1, 2)
 %   \genmat[a]{m}{n}               general m x n matrix with entries a_ij
 %   \symmat[a]{n}                  general symmetric matrix (a_ji below diag)
 %   \symmat{e & 0 \\ 0 & d}        symmetric matrix from all its rows ...
@@ -278,7 +279,7 @@
 % ---------------------------------------------------------------------------
 % \colvec[x]{n}: column vector (x_1, ..., x_n)
 % \colvec[x,y]  / \colvec[1, 2]: column vector with exactly those entries
-% \rowvec works the same way for row vectors.
+% \rowvec[x,y] gives the row vector (x, y), commas printed.
 % A list is used when the option has a comma or no size {n} follows.
 % #1 = option, #2 = size (empty: none given), #3 = column (c) / row (r)
 \cs_new_protected:Npn \mathsc_vec:nnn #1#2#3
@@ -295,7 +296,7 @@
             {
               \str_if_eq:nnTF {#3} { c }
                 { \seq_use:Nn \l__mathsc_items_seq { \\ } }
-                { \seq_use:Nn \l__mathsc_items_seq { & } }
+                { \seq_use:Nn \l__mathsc_items_seq { , ~ } }
             }
         }
         {
