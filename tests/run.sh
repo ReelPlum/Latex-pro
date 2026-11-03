@@ -9,6 +9,11 @@
 # (LPTEST FAIL in the log), or when the final log still has an undefined
 # reference or control sequence. Each file is compiled from its own folder,
 # as you would compile it. PDFs and logs go to build/.
+#
+# A test with a tests/qr/<name>.txt file (<name> without "test-") also has
+# its QR codes read back from the PDF, one code per page, and compared with
+# the lines of that file. This needs pdftoppm (poppler-utils) and zbarimg
+# (zbar-tools); without them the check is skipped with a note.
 set -u
 root="$(cd "$(dirname "$0")/.." && pwd)"
 build="$root/build"
@@ -35,6 +40,22 @@ for tex in "$root"/tests/test-*.tex "$root"/examples/*.tex; do
     log="$out/$name.log"
     problems="$(grep -E -A3 '^!|LPTEST FAIL' "$log" 2>/dev/null | head -20)"
     [[ -z "$problems" ]] && problems="latexmk failed, see $out/latexmk.out"
+  fi
+  expected="$root/tests/qr/$(basename "$tex" .tex | sed 's/^test-//').txt"
+  if [[ -z "$problems" && -f "$expected" ]]; then
+    if command -v zbarimg >/dev/null && command -v pdftoppm >/dev/null; then
+      rm -f "$out"/page-*.png
+      pdftoppm -r 150 -png "$out/$name.pdf" "$out/page"
+      for png in "$out"/page-*.png; do
+        zbarimg -q --raw "$png" 2>/dev/null || echo "(no QR code on $(basename "$png"))"
+      done >"$out/qr-decoded.txt"
+      if ! diff -u "$expected" "$out/qr-decoded.txt" >"$out/qr-diff.txt"; then
+        problems="QR codes decode to the wrong text:
+$(tail -n +3 "$out/qr-diff.txt")"
+      fi
+    else
+      echo "note  $name: zbarimg or pdftoppm missing, QR codes not read back"
+    fi
   fi
   checks="$(grep -o 'LPTEST SUMMARY: .*' "$log" 2>/dev/null | tail -1)"
   if [[ -z "$problems" ]]; then
