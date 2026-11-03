@@ -34,4 +34,29 @@ Notes:
 - Since the package defines these environments, remove any
   `\newtheorem{proposition}{…}` (etc.) lines from your own preamble.
 
+## References to the book
+
+Sections, chapters and equations of the book (or of your own document, by
+label) are written in the same style:
+
+```latex
+By \booksection{2.3} and \bookeq{3.12} ...   % "Section 2.3", "Equation (3.12)"
+See \bookchapter{4} and \booksection{A.2}.
+As in \booksection{sec:intro}.               % a label of your own document
+```
+
+| Command | Result |
+| --- | --- |
+| `\booksection{2.3}` | <span style="font-variant:small-caps">Section</span> **2.3** |
+| `\bookchapter{4}` | <span style="font-variant:small-caps">Chapter</span> **4** |
+| `\bookeq{3.12}`, `\bookeq{(3.12)}` | <span style="font-variant:small-caps">Equation</span> **(3.12)** |
+| `\booksection{sec:intro}`, `\bookeq{eq:main}` | the same, number taken from a label |
+
+Notes:
+
+- A typed number can be `3`, `4.2`, `2.3.1`, an appendix `A.2` or a
+  sub-equation `3.1a`. This also holds for `\theorem{A.1}` etc.
+- Change the words with `\renewcommand\booksectionname{Afsnit}`,
+  `\bookchaptername` and `\bookeqname`.
+
 Examples: [`examples/theorems.tex`](../examples/theorems.tex). Tests: [`tests/test-theorems.tex`](../tests/test-theorems.tex).

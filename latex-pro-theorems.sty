@@ -11,6 +11,14 @@
 %   All share one counter. Option [bysection] numbers them 2.1, 2.2, ...
 %   Rename with e.g. \renewcommand\propositionname{Sætning}.
 %
+% References to the book (or to your own document, by label)
+%   \booksection{2.3}              small caps "Section", bold 2.3
+%   \bookchapter{4}                "Chapter 4"
+%   \bookeq{3.12}                  "Equation (3.12)", also \bookeq{(3.12)}
+%   \booksection{sec:intro}        a label works too, as for \proposition
+%   Numbers may hold a letter: \booksection{A.2}, \bookeq{3.1a}.
+%   Rename with \booksectionname, \bookchaptername, \bookeqname.
+%
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
 \ProvidesPackage{latex-pro-theorems}[2026/11/03 v0.2 latex-pro: theorems and references]
 
@@ -43,13 +51,16 @@
     {\renewcommand\latexpro@reflink[2]{\hyperref[#2]{#1}}}{}}
 
 \ExplSyntaxOn
+% a typed number: 3, 4.2, 2.3.1, A.2 (appendix), 3.1a (sub-equation)
+\regex_const:Nn \c__latexpro_refnum_regex
+  { \A \s* (?: [0-9]+ | [A-Z] ) (?: \.[0-9]+ )* [a-z]? \s* \Z }
 % #1 = kind (proposition, ...), #2 = label or literal number
 \cs_new_protected:Npn \latexpro_thmref:nn #1#2
   {
     \cs_if_exist:cTF { r@#2 }
       { \latexpro_thmref_label:nn {#1} {#2} }
       {
-        \regex_match:nnTF { \A \s* [0-9]+ (\.[0-9]+)* \s* \Z } {#2}
+        \regex_match:NnTF \c__latexpro_refnum_regex {#2}
           { \latexpro_thmref_text:nn {#1} {#2} }
           { \latexpro_thmref_label:nn {#1} {#2} }
       }
@@ -67,7 +78,8 @@
 \cs_new_protected:Npn \latexpro_thmref_text:nn #1#2
   {
     \latexprorefstyle { \mbox { \use:c { #1name } } }
-    \nobreakspace \latexprorefnumstyle {#2}
+    \nobreakspace \latexprorefnumstyle
+      { \cs_if_exist_use:cF { latexpro@#1@num } { \use:n } {#2} }
   }
 
 % #1 = kind, #2 = printed name, #3 = amsthm style
@@ -99,6 +111,28 @@
 \latexpro_newthm:nnn { exercise }    { Exercise }    { definition }
 \latexpro_newthm:nnn { example }     { Example }     { definition }
 \latexpro_newthm:nnn { remark }      { Remark }      { remark }
+
+% ---------------------------------------------------------------------------
+% References to sections, chapters and equations of the book
+% ---------------------------------------------------------------------------
+% #1 = kind, #2 = printed name: defines \<kind> and \<kind>name
+\cs_new_protected:Npn \latexpro_newref:nn #1#2
+  {
+    \cs_if_exist:cF { #1name } { \cs_new:cpn { #1name } {#2} }
+    \exp_args:Nc \NewDocumentCommand { #1 } { m }
+      { \latexpro_thmref:nn {#1} {##1} }
+  }
+\latexpro_newref:nn { booksection } { Section }
+\latexpro_newref:nn { bookchapter } { Chapter }
+\latexpro_newref:nn { bookeq }      { Equation }
+% equation numbers go in parentheses; \bookeq{(3.1)} is the same as \bookeq{3.1}
+\cs_new:cpn { latexpro@bookeq@num } #1 { (#1) }
+\RenewDocumentCommand \bookeq { m }
+  {
+    \tl_set:Ne \l_tmpa_tl { \tl_trim_spaces:n {#1} }
+    \regex_replace_once:nnN { \A \( (.*) \) \Z } { \1 } \l_tmpa_tl
+    \exp_args:NnV \latexpro_thmref:nn { bookeq } \l_tmpa_tl
+  }
 \ExplSyntaxOff
 
 \endinput
