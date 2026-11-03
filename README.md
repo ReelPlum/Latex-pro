@@ -38,16 +38,17 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\hessian[x,y]{2}` | Hessian in the variables x and y (entries ∂²f(v)/∂x∂y, …) |
 | `\hessian[y][g]{n}` | Hessian of g in y₁,…,yₙ |
 | `\hessian[x][f][\mathbf{a}]{2}` | Hessian of f at the point **a** |
-| `\hessian[x][f][]{2}` | Hessian with no point, entries ∂²f/∂xᵢ∂xⱼ |
+| `\hessian*{2}` | Hessian with no point, entries ∂²f/∂xᵢ∂xⱼ (the star leaves the point out) |
+| `\hessian[][g]{5}` | an empty option keeps its default: variables x, function g |
 | `\idmat{3}` | the 3×3 identity matrix, written out |
 | `\idmat{n}` | the general n×n identity matrix with ⋯ ⋮ ⋱ |
 | `\diff[f]{x}`, `\diff[f]{x,x}` | df/dx, d²f/dx² (same rules as `\partialdiff`, upright d) |
 | `\gradient{3}` | gradient ∇f(v) as a row vector (∂f(v)/∂x₁ ⋯ ∂f(v)/∂x₃), as in the IMO26 notes |
-| `\gradient[y][g][]{n}` | general gradient of g in y₁,…,yₙ, no point |
+| `\gradient*[y][g]{n}` | general gradient of g in y₁,…,yₙ, no point |
 | `\gradient[x,y,z]{}` | gradient in the variables x, y, z |
 | `\jacobian{2}{3}` | 2×3 derivative matrix f′(v), entries ∂fᵢ(v)/∂xⱼ |
 | `\jacobian[x,y]{2}{}` | 2×2 derivative matrix in the variables x, y |
-| `\jacobian[x][f][]{m}{n}` | general m×n derivative matrix, no point |
+| `\jacobian*{m}{n}` | general m×n derivative matrix, no point |
 | `\colvec{n}`, `\colvec[v]{3}` | column vector (x₁,…,xₙ) / (v₁,v₂,v₃) |
 | `\rowvec[w]{4}` | row vector [w₁ w₂ w₃ w₄] |
 | `\rowvec[x,y]`, `\rowvec[1, 2]` | row vector with exactly those entries, printed with commas: (x, y), (1, 2) |
@@ -80,12 +81,15 @@ Notes:
 - `\partialdiff` collapses *consecutive* repeats into powers, so `{x,x,y}`
   gives ∂x²∂y, while `{x,y,x}` keeps the order you wrote. The total order
   goes on the ∂ in the numerator.
-- `\hessian[variables][function][point]{dimension}` defaults to `x`, `f` and `v`;
-  `\gradient` and `\jacobian` take the same options. The variables are either
+- `\hessian[variables][function][point]{dimension}` defaults to `x`, `f` and `v`.
+  Leave an option empty to keep its default, e.g. `\hessian[][g]{5}` or
+  `\hessian[][][\mathbf a]{2}`, and use the starred form `\hessian*` to leave the
+  point out. The same goes for `\gradient` and `\jacobian`, and empty options also
+  fall back to the default in `\colvec`, `\rowvec`, `\genmat` and `\symmat`.
+  The variables are either
   one symbol, `[y]` → y₁, y₂, …, or a list, `[x,y,z]` → exactly x, y, z (then the
   size comes from the list and `{}` is enough).
-  Pass an empty `[]` as the point to leave it out. Its
-  entries are built with `\partialdiff` and the matrix with `\mat`.
+  The entries are built with `\partialdiff` and the matrix with `\mat`.
 - **Bracket style.** Every matrix command (`\hessian`, `\idmat`, `\gradient`,
   `\jacobian`, `\colvec`, `\rowvec`, `\genmat`, `\symmat`, `\diagmat`) uses
   round brackets by default. Put `\usematb` at the top of the document (after
