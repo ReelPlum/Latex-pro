@@ -61,7 +61,114 @@ print("æøå")  # non-ASCII letters work with pdflatex
   { \bool_if:NTF \l_tmpa_bool { \iffalse } { \iftrue } }
 \ExplSyntaxOff
 
-% a listing longer than a page breaks across pages inside its box
+% [span] is taken out of the listings options
+\ExplSyntaxOn
+\__latexpro_code_opts:n { span, firstline=2 }
+\lptrue{span~sets~the~flag}
+  { \bool_if:NTF \l__latexpro_code_span_bool { \iftrue } { \iffalse } }
+\lptrue{span~is~not~passed~to~listings}
+  { \str_if_eq:eeTF { \clist_use:Nn \l__latexpro_code_lst_clist { ; } }
+      { firstline=\c_left_brace_str 2\c_right_brace_str } { \iftrue } { \iffalse } }
+\__latexpro_code_opts:n { firstline=2 }
+\lptrue{without~span~the~flag~is~off}
+  { \bool_if:NTF \l__latexpro_code_span_bool { \iffalse } { \iftrue } }
+\ExplSyntaxOff
+
+% without [span] a box is never split: a long listing moves to a fresh page
+% and stays on it; with [span] it runs over several pages
+\newcount\lpstart
+\clearpage \lpstart=\value{page}
 \python{code/long.py}
-\lptrue{long listing breaks across pages}{\ifnum\value{page}>2 }
+\lptrue{without span a long listing stays on one page}
+  {\ifnum\value{page}=\lpstart}
+\clearpage \lpstart=\value{page}
+\python[span]{code/long.py}
+\lptrue{python span breaks across pages}{\ifnum\value{page}>\lpstart}
+\clearpage \lpstart=\value{page}
+\pseudo[span]{code/long.txt}
+\lptrue{pseudo span breaks across pages}{\ifnum\value{page}>\lpstart}
+\clearpage \lpstart=\value{page}
+\begin{pythoncode}[span, caption=Long]
+y_1 = 1 * 2
+y_2 = 2 * 2
+y_3 = 3 * 2
+y_4 = 4 * 2
+y_5 = 5 * 2
+y_6 = 6 * 2
+y_7 = 7 * 2
+y_8 = 8 * 2
+y_9 = 9 * 2
+y_10 = 10 * 2
+y_11 = 11 * 2
+y_12 = 12 * 2
+y_13 = 13 * 2
+y_14 = 14 * 2
+y_15 = 15 * 2
+y_16 = 16 * 2
+y_17 = 17 * 2
+y_18 = 18 * 2
+y_19 = 19 * 2
+y_20 = 20 * 2
+y_21 = 21 * 2
+y_22 = 22 * 2
+y_23 = 23 * 2
+y_24 = 24 * 2
+y_25 = 25 * 2
+y_26 = 26 * 2
+y_27 = 27 * 2
+y_28 = 28 * 2
+y_29 = 29 * 2
+y_30 = 30 * 2
+y_31 = 31 * 2
+y_32 = 32 * 2
+y_33 = 33 * 2
+y_34 = 34 * 2
+y_35 = 35 * 2
+y_36 = 36 * 2
+y_37 = 37 * 2
+y_38 = 38 * 2
+y_39 = 39 * 2
+y_40 = 40 * 2
+y_41 = 41 * 2
+y_42 = 42 * 2
+y_43 = 43 * 2
+y_44 = 44 * 2
+y_45 = 45 * 2
+y_46 = 46 * 2
+y_47 = 47 * 2
+y_48 = 48 * 2
+y_49 = 49 * 2
+y_50 = 50 * 2
+y_51 = 51 * 2
+y_52 = 52 * 2
+y_53 = 53 * 2
+y_54 = 54 * 2
+y_55 = 55 * 2
+y_56 = 56 * 2
+y_57 = 57 * 2
+y_58 = 58 * 2
+y_59 = 59 * 2
+y_60 = 60 * 2
+y_61 = 61 * 2
+y_62 = 62 * 2
+y_63 = 63 * 2
+y_64 = 64 * 2
+y_65 = 65 * 2
+y_66 = 66 * 2
+y_67 = 67 * 2
+y_68 = 68 * 2
+y_69 = 69 * 2
+y_70 = 70 * 2
+y_71 = 71 * 2
+y_72 = 72 * 2
+y_73 = 73 * 2
+y_74 = 74 * 2
+y_75 = 75 * 2
+y_76 = 76 * 2
+y_77 = 77 * 2
+y_78 = 78 * 2
+y_79 = 79 * 2
+y_80 = 80 * 2
+\end{pythoncode}
+\lptrue{pythoncode span breaks across pages}{\ifnum\value{page}>\lpstart}
 \end{document}
