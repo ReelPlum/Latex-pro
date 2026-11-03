@@ -15,7 +15,8 @@
 %   \hessian[x][f][v]{n}           Hessian matrix of f in n dimensions,
 %                                  variables [x] -> x_1..x_n or a list [x,y];
 %                                  evaluated at the point v (default v;
-%                                  pass [] as the third option to drop it).
+%                                  \hessian* leaves the point out). An empty
+%                                  option keeps its default: \hessian[][g]{5}.
 %   \idmat{n}                      identity matrix; n a number -> written
 %                                  out, otherwise general form with dots.
 %
@@ -239,6 +240,11 @@
 % ---------------------------------------------------------------------------
 % Hessian
 % ---------------------------------------------------------------------------
+% Empty option -> default:  \__mathsc_or:nn {<given>} {<default>}
+% (expandable; the result is protected from further expansion)
+\cs_new:Npn \__mathsc_or:nn #1#2
+  { \tl_if_blank:nTF {#1} { \exp_not:n {#2} } { \exp_not:n {#1} } }
+
 % Variables for \hessian, \gradient and \jacobian
 %   [x]      indexed: x_1, x_2, ..., x_n  (the size comes from {n})
 %   [x,y,z]  exactly these variables      (the size is the length of the list)
@@ -292,12 +298,21 @@
 % \hessian[x][f][v]{n}
 %   1st option = variables: [y] -> y_1..y_n, [x,y] -> x and y (default x)
 %   2nd option = function (default f)
-%   3rd option = point (default v); [] leaves it out
-\NewDocumentCommand \hessian { O{x} O{f} O{v} m }
+%   3rd option = point (default v)
+%   An empty option keeps its default: \hessian[][g]{5}.
+%   \hessian* leaves the point out.
+\NewDocumentCommand \hessian { s O{} O{} O{} m }
   {
-    \tl_if_blank:nTF {#3}
-      { \mathsc_hessian:nnn {#1} {#2} {#4} }
-      { \mathsc_hessian:nnn {#1} { #2 ( #3 ) } {#4} }
+    \use:e
+      {
+        \exp_not:N \mathsc_hessian:nnn
+          { \__mathsc_or:nn {#2} { x } }
+          {
+            \__mathsc_or:nn {#3} { f }
+            \IfBooleanF {#1} { ( \__mathsc_or:nn {#4} { v } ) }
+          }
+          { \exp_not:n {#5} }
+      }
   }
 
 % ---------------------------------------------------------------------------
@@ -364,11 +379,15 @@
   }
 \cs_new_protected:Npn \__mathsc_vec_size:nnn #1#2#3
   { \mathsc_vec:nnn {#1} {#3} {#2} }
-\NewDocumentCommand \colvec { O{x} } { \__mathsc_vec_peek:nn {#1} { c } }
-\NewDocumentCommand \rowvec { O{x} } { \__mathsc_vec_peek:nn {#1} { r } }
+\NewDocumentCommand \colvec { O{} }
+  { \exp_args:Ne \__mathsc_vec_peek:nn { \__mathsc_or:nn {#1} { x } } { c } }
+\NewDocumentCommand \rowvec { O{} }
+  { \exp_args:Ne \__mathsc_vec_peek:nn { \__mathsc_or:nn {#1} { x } } { r } }
 
 % \genmat[a]{m}{n}: general m x n matrix with entries a_{ij}
-\NewDocumentCommand \genmat { O{a} m m }
+\NewDocumentCommand \genmat { O{} m m }
+  { \exp_args:Ne \mathsc_genmat:nnn { \__mathsc_or:nn {#1} { a } } {#2} {#3} }
+\cs_new_protected:Npn \mathsc_genmat:nnn #1#2#3
   {
     \group_begin:
       \cs_set:Npn \__mathsc_cell:nn ##1##2
@@ -395,12 +414,20 @@
       \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
-% \gradient[x][f][v]{n}: options as for \hessian
-\NewDocumentCommand \gradient { O{x} O{f} O{v} m }
+% \gradient[x][f][v]{n}: options as for \hessian (empty = default,
+% \gradient* leaves the point out)
+\NewDocumentCommand \gradient { s O{} O{} O{} m }
   {
-    \tl_if_blank:nTF {#3}
-      { \mathsc_gradient:nnn {#1} {#2} {#4} }
-      { \mathsc_gradient:nnn {#1} { #2 ( #3 ) } {#4} }
+    \use:e
+      {
+        \exp_not:N \mathsc_gradient:nnn
+          { \__mathsc_or:nn {#2} { x } }
+          {
+            \__mathsc_or:nn {#3} { f }
+            \IfBooleanF {#1} { ( \__mathsc_or:nn {#4} { v } ) }
+          }
+          { \exp_not:n {#5} }
+      }
   }
 
 % \jacobian[x][f][v]{m}{n}: the m x n derivative matrix f'(v) of
@@ -423,11 +450,17 @@
       \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
-\NewDocumentCommand \jacobian { O{x} O{f} O{v} m m }
+% options as for \hessian (empty = default, \jacobian* leaves the point out)
+\NewDocumentCommand \jacobian { s O{} O{} O{} m m }
   {
-    \tl_if_blank:nTF {#3}
-      { \mathsc_jacobian:nnnnn {#1} {#2} { } {#4} {#5} }
-      { \mathsc_jacobian:nnnnn {#1} {#2} { (#3) } {#4} {#5} }
+    \use:e
+      {
+        \exp_not:N \mathsc_jacobian:nnnnn
+          { \__mathsc_or:nn {#2} { x } }
+          { \__mathsc_or:nn {#3} { f } }
+          { \IfBooleanF {#1} { ( \__mathsc_or:nn {#4} { v } ) } }
+          { \exp_not:n {#5} } { \exp_not:n {#6} }
+      }
   }
 
 % ---------------------------------------------------------------------------
@@ -549,7 +582,9 @@
       \exp_args:NV \mat \l__mathsc_body_tl
     \group_end:
   }
-\NewDocumentCommand \symmat { O{a} m }
+\NewDocumentCommand \symmat { O{} m }
+  { \exp_args:Ne \__mathsc_symmat_dispatch:nn { \__mathsc_or:nn {#1} { a } } {#2} }
+\cs_new_protected:Npn \__mathsc_symmat_dispatch:nn #1#2
   {
     \tl_if_in:nnTF {#1} { , }
       { \mathsc_symdiag:nn {#1} {#2} }

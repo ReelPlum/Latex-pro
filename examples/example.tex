@@ -7,23 +7,24 @@
 \[ H_f = \hessian{2} \]
 \[ H_f = \hessian{3} \]
 \[ H_g = \hessian[y][g]{n} \]
-\[ \hessian[x,y]{2} \qquad \hessian[y]{2} \qquad \hessian[x,y,z][g][]{} \]
-\[ H_f(\mathbf{a}) = \hessian[x][f][\mathbf{a}]{2} \qquad H_f = \hessian[x][f][]{2} \]
+\[ \hessian[][g]{2} \qquad \hessian[][][\mathbf{a}]{2} \qquad \gradient[][h]{2} \qquad \colvec[]{2} \qquad \genmat[]{2}{2} \]
+\[ \hessian[x,y]{2} \qquad \hessian[y]{2} \qquad \hessian*[x,y,z][g]{} \]
+\[ H_f(\mathbf{a}) = \hessian[x][f][\mathbf{a}]{2} \qquad H_f = \hessian*{2} \]
 \[ I_2 = \idmat{2} \quad I_4 = \idmat{4} \quad I_n = \idmat{n} \]
 
 \begin{proposition}[Identity]\label{prop:id}
   For every $n \times n$ matrix $A$ we have $I_n A = A$.
 \end{proposition}
 \begin{exercise}\label{ex:hess}
-  Compute $\hessian[x][f][]{2}$ for $f(x_1, x_2) = x_1^2 x_2$.
+  Compute $\hessian*{2}$ for $f(x_1, x_2) = x_1^2 x_2$.
 \end{exercise}
 By \proposition{prop:id}, \exercise{ex:hess} needs no identity matrix.
 See also \theorem{4.2} in the course notes.
 \section*{Added from IMO26 notation}
 \[ \diff[f]{x} \quad \diff[f]{x,x} \quad \diff{t} \]
-\[ \nabla f(v) = \gradient{3} \qquad \nabla g = \gradient[y][g][]{n} \]
+\[ \nabla f(v) = \gradient{3} \qquad \nabla g = \gradient*[y][g]{n} \]
 \[ \nabla f(v) = \gradient[x,y,z]{} \qquad f'(v) = \jacobian[x,y]{2}{} \]
-\[ f'(v) = \jacobian{2}{3} \qquad f' = \jacobian[x][f][]{m}{n} \]
+\[ f'(v) = \jacobian{2}{3} \qquad f' = \jacobian*{m}{n} \]
 \[ \ball{v}{\epsilon} = \setof{u \in \R^d}{\dist{u}{v} < \epsilon}, \quad
    \interior{S}, \quad \bd{S}, \quad x^2 - 5x + 6 \in \Rx, \quad \Rx[t] \]
 \[ \rowvec[x,y], \quad \rowvec[1, 2], \quad \colvec[x, y, z], \quad \colvec[1,2]\tp, \quad \rowvec[a] \]
