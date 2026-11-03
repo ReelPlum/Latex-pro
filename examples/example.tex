@@ -37,4 +37,10 @@ See also \theorem{4.2} in the course notes.
    \quad \symmat{a & b \\ c} \]
 \[ \symmat{e & 0 \\ 0 & d}, \quad \symmat{1 & 2 & 3 \\ 2 & 4 & 5 \\ 3 & 5 & 6},
    \quad \symmat[e,d]{2}, \quad \symmat[d_1,d_2,d_n]{n}, \quad \diagmat{e, d}, \quad \diagmat{\lambda_1, \lambda_2, \lambda_3} \]
+\section*{Bracket style}
+Default (round): \[ \idmat{2}, \quad \mat{a & b \\ c & d}, \quad \symmat[e,d]{2} \]
+\usematb
+After \verb|\usematb|: \[ \idmat{2}, \quad \mat{a & b \\ c & d}, \quad \gradient{2} \]
+\usematp
+After \verb|\usematp|: \[ \idmat{2} \]
 \end{document}
