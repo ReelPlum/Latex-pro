@@ -30,16 +30,19 @@ A symlink means `git pull` in this repo updates every project at once.
 | `\partialdiff[f]{x,x}` | ∂²f/∂x² |
 | `\partialdiff[f]{x,x,y}` | ∂³f/∂x²∂y |
 | `\partialdiff{t}` | ∂/∂t (operator, no function) |
-| `\hessian{3}` | the 3×3 Hessian of f, every entry written out |
+| `\hessian{3}` | the 3×3 Hessian of f at v, every entry ∂²f(v)/∂xᵢ∂xⱼ written out |
 | `\hessian{n}` | the general n×n Hessian with ⋯ ⋮ ⋱ |
 | `\hessian[g][y]{2}` | Hessian of g in variables y₁, y₂ |
+| `\hessian[f][x][\mathbf{a}]{2}` | Hessian of f at the point **a** |
+| `\hessian[f][x][]{2}` | Hessian with no point, entries ∂²f/∂xᵢ∂xⱼ |
 
 Notes:
 
 - `\partialdiff` collapses *consecutive* repeats into powers, so `{x,x,y}`
   gives ∂x²∂y, while `{x,y,x}` keeps the order you wrote. The total order
   goes on the ∂ in the numerator.
-- `\hessian[function][variable]{dimension}` defaults to `f` and `x`. Its
+- `\hessian[function][variable][point]{dimension}` defaults to `f`, `x` and `v`.
+  Pass an empty `[]` as the point to leave it out. Its
   entries are built with `\partialdiff` and the matrix with `\bmat`.
 
 See `examples/example.tex` for all of the above. Compile it from the

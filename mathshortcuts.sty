@@ -8,7 +8,9 @@
 %   \partialdiff[f]{x,y,...}       partial derivative of f w.r.t. the listed
 %                                  variables; consecutive repeats collapse to
 %                                  powers, e.g. {x,x,y} -> d^3 f / dx^2 dy
-%   \hessian[f][x]{n}              Hessian matrix of f in n dimensions.
+%   \hessian[f][x][v]{n}           Hessian matrix of f in n dimensions,
+%                                  evaluated at the point v (default v;
+%                                  pass [] as the third option to drop it).
 %                                  n a number -> every entry written out,
 %                                  otherwise the general n x n form with dots.
 %
@@ -152,9 +154,13 @@
     \group_end:
   }
 
-% \hessian[f][x]{n}
-\NewDocumentCommand \hessian { O{f} O{x} m }
-  { \mathsc_hessian:nnn {#1} {#2} {#3} }
+% \hessian[f][x][v]{n}  -- third optional = point; [] leaves it out
+\NewDocumentCommand \hessian { O{f} O{x} O{v} m }
+  {
+    \tl_if_blank:nTF {#3}
+      { \mathsc_hessian:nnn {#1} {#2} {#4} }
+      { \mathsc_hessian:nnn { #1 ( #3 ) } {#2} {#4} }
+  }
 
 \ExplSyntaxOff
 
