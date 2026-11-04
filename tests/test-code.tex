@@ -372,6 +372,15 @@ x <- x + 69
 x <- x + 70
 \end{pseudo}
 \lptrue{a long pseudo environment breaks across pages}{\ifnum\value{page}>\lpstart}
+% a split box gets square corners and no border on the split edges: the
+% jigsaw skin draws only the outer edges of each part
+\clearpage
+\makeatletter
+{\tcbset{latexpro-code/.append style={before upper={\xdef\lpskin{\kvtcb@skin@current}}}}%
+ \python{code/long.py}}
+\def\lpwant{enhanced jigsaw}
+\makeatother
+\lptrue{code boxes use the jigsaw skin (open, square split edges)}{\ifx\lpskin\lpwant}
 % span=false keeps even a long box in one piece
 % (checked on the decision: where an over-full page is shipped out is not
 % a stable thing to test)

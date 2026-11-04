@@ -327,7 +327,7 @@ These go in `[opts]` of `\python`, `\pseudo`, `pythoncode` and `pseudo`.
 | `caption={text}` | text on the right of the header bar (replaces the file name) | file name (files), nothing (environments) |
 | `title={text}` | same as `caption` | |
 | `filename=false` | hide the file name in the header bar | `true` |
-| `span` | let the box break across pages, even a short one | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
+| `span` | let the box break across pages, even a short one (split edges are square and open) | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
 | `span=false` | never break, even a box taller than a page | |
 | any `listings` option | passed on, e.g. `firstline=10`, `lastline=25`, `numbers=none`, `firstnumber=5` | |
 

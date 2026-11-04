@@ -68,7 +68,7 @@
 \AddToHook{begindocument/before}{%
   \@ifpackageloaded{xcolor}{}{\RequirePackage{xcolor}}%
   \@ifpackageloaded{tcolorbox}{}{\RequirePackage{tcolorbox}}%
-  \tcbuselibrary{breakable}%
+  \tcbuselibrary{breakable,skins}%
   \providecolor{latexpro@codebg}{HTML}{F6F8FA}%
   \providecolor{latexpro@codeframe}{HTML}{D0D7DE}%
   \providecolor{latexpro@header}{HTML}{24292F}%
@@ -88,7 +88,13 @@
     boxrule=0.6pt, titlerule=0.6pt, arc=6pt,
     left=10pt, right=10pt, top=4pt, bottom=6pt,
     lefttitle=10pt, righttitle=10pt, toptitle=3pt, bottomtitle=3pt,
-    before skip=\medskipamount, after skip=\medskipamount}}%
+    before skip=\medskipamount, after skip=\medskipamount,
+    % a box split over pages: square corners and no border on the edges
+    % where it is split (the jigsaw skin draws only the outer edges)
+    enhanced jigsaw,
+    extras first={sharp corners=south},
+    extras middle={sharp corners},
+    extras last={sharp corners=north}}}%
 }
 % keywords and operators: listings also hands operators (otherkeywords such
 % as = - +) inside comments and strings to keywordstyle, so colour them only
