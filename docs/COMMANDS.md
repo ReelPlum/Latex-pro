@@ -326,7 +326,8 @@ These go in `[opts]` of `\python`, `\pseudo`, `pythoncode` and `pseudo`.
 | `caption={text}` | text on the right of the header bar (replaces the file name) | file name (files), nothing (environments) |
 | `title={text}` | same as `caption` | |
 | `filename=false` | hide the file name in the header bar | `true` |
-| `span` | let the box break across pages | kept in one piece |
+| `span` | let the box break across pages, even a short one | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
+| `span=false` | never break, even a box taller than a page | |
 | any `listings` option | passed on, e.g. `firstline=10`, `lastline=25`, `numbers=none`, `firstnumber=5` | |
 
 ```latex
@@ -349,9 +350,10 @@ drops the line numbers. Options: [see above](#options-for-code-blocks).
 
 ### `pythoncode`
 
-`\begin{pythoncode}[opts] … \end{pythoncode}`
+`\begin{pythoncode}[opts] … \end{pythoncode}` · `\begin{pythoncode*}…`
 
-Python typed straight into the `.tex` file, same look as `\python`. There
+Python typed straight into the `.tex` file, same look as `\python`; the
+star drops the line numbers. There
 is no file name, so the header only shows a `caption`.
 
 ```latex
@@ -605,7 +607,6 @@ the document for the ones marked "from here on").
 | `\latexprocodefont` | font of all code | `\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}` |
 | `\latexprofunctionfont` | extra font for function names (small caps) | `\renewcommand\latexprofunctionfont{}` (no small caps) |
 | `latexpro-code` box style | the tcolorbox of every code block | `\tcbset{latexpro-code/.append style={arc=0pt}}` (square corners) |
-| breakable for every block | let every code box span pages | `\tcbset{latexpro-code/.append style={breakable}}` |
 | `latexpro-python`, `latexpro-pseudo` listings styles | the listings settings | `\lstdefinestyle{latexpro-python}{…}` |
 
 **Code colours.** Redefine any of these with `\definecolor` in the

@@ -128,9 +128,8 @@ Text with \method{merge} in it.
   { \str_if_eq:eeTF { \clist_use:Nn \l__latexpro_code_lst_clist { ; } } { firstline=\c_left_brace_str 2\c_right_brace_str;lastline=\c_left_brace_str 5\c_right_brace_str } { \iftrue } { \iffalse } }
 \cs_new_protected:Npn \__test_header:nn #1#2
   {
-    \__latexpro_code_begin:nnnn { X } \c_false_bool {#1} {#2}
+    \__latexpro_code_setup:nn {#1} {#2}
     \tl_gset_eq:NN \g_tmpa_tl \l__latexpro_code_caption_tl
-    \__latexpro_code_end:
   }
 \__test_header:nn { } { file.txt }
 \lptrue{header~shows~the~file~name~by~default}
@@ -172,31 +171,39 @@ Text with \method{merge} in it.
 % [span] is taken out of the listings options
 \ExplSyntaxOn
 \__latexpro_code_opts:n { span, firstline=2 }
-\lptrue{span~sets~the~flag}
-  { \bool_if:NTF \l__latexpro_code_span_bool { \iftrue } { \iffalse } }
+\lptrue{span~sets~span=true}
+  { \str_if_eq:VnTF \l__latexpro_code_span_tl { true } { \iftrue } { \iffalse } }
 \lptrue{span~is~not~passed~to~listings}
   { \str_if_eq:eeTF { \clist_use:Nn \l__latexpro_code_lst_clist { ; } }
       { firstline=\c_left_brace_str 2\c_right_brace_str } { \iftrue } { \iffalse } }
 \__latexpro_code_opts:n { firstline=2 }
-\lptrue{without~span~the~flag~is~off}
-  { \bool_if:NTF \l__latexpro_code_span_bool { \iffalse } { \iftrue } }
+\lptrue{without~span~it~is~auto}
+  { \str_if_eq:VnTF \l__latexpro_code_span_tl { auto } { \iftrue } { \iffalse } }
+\__latexpro_code_opts:n { span=false }
+\lptrue{span=false~is~kept}
+  { \str_if_eq:VnTF \l__latexpro_code_span_tl { false } { \iftrue } { \iffalse } }
 \ExplSyntaxOff
 
-% without [span] a box is never split: a long listing moves to a fresh page
-% and stays on it; with [span] it runs over several pages
+% Long boxes. Regression: a box taller than a page was never split and ran
+% off the bottom of the page. Now (span=auto) a box taller than a page
+% breaks across pages by itself, a shorter one is kept in one piece.
 \newcount\lpstart
+\makeatletter
+% \lpboxpage{label}: the page the label (set at the top of a box) is on
+\def\lp@labelpage#1#2#3\@nil{#2}
+\newcommand\lpboxpage[1]{\ifcsname r@#1\endcsname
+  \expandafter\expandafter\expandafter\lp@labelpage\csname r@#1\endcsname\@nil
+  \else 0\fi}
+\newcommand\lplabelbox[1]{\tcbset{latexpro-code/.append style={before upper={\label{#1}}}}}
+\makeatother
 \clearpage \lpstart=\value{page}
 \python{code/long.py}
-\lptrue{without span a long listing stays on one page}
-  {\ifnum\value{page}=\lpstart}
+\lptrue{a python box taller than a page breaks across pages}{\ifnum\value{page}>\lpstart}
 \clearpage \lpstart=\value{page}
-\python[span]{code/long.py}
-\lptrue{python span breaks across pages}{\ifnum\value{page}>\lpstart}
+\pseudo{code/long.txt}
+\lptrue{a pseudo box taller than a page breaks across pages}{\ifnum\value{page}>\lpstart}
 \clearpage \lpstart=\value{page}
-\pseudo[span]{code/long.txt}
-\lptrue{pseudo span breaks across pages}{\ifnum\value{page}>\lpstart}
-\clearpage \lpstart=\value{page}
-\begin{pythoncode}[span, caption=Long]
+\begin{pythoncode}[caption=Long]
 y_1 = 1 * 2
 y_2 = 2 * 2
 y_3 = 3 * 2
@@ -278,5 +285,117 @@ y_78 = 78 * 2
 y_79 = 79 * 2
 y_80 = 80 * 2
 \end{pythoncode}
-\lptrue{pythoncode span breaks across pages}{\ifnum\value{page}>\lpstart}
+\lptrue{a long pythoncode environment breaks across pages}{\ifnum\value{page}>\lpstart}
+\clearpage \lpstart=\value{page}
+\begin{pseudo}[caption=Long]
+x <- x + 1
+x <- x + 2
+x <- x + 3
+x <- x + 4
+x <- x + 5
+x <- x + 6
+x <- x + 7
+x <- x + 8
+x <- x + 9
+x <- x + 10
+x <- x + 11
+x <- x + 12
+x <- x + 13
+x <- x + 14
+x <- x + 15
+x <- x + 16
+x <- x + 17
+x <- x + 18
+x <- x + 19
+x <- x + 20
+x <- x + 21
+x <- x + 22
+x <- x + 23
+x <- x + 24
+x <- x + 25
+x <- x + 26
+x <- x + 27
+x <- x + 28
+x <- x + 29
+x <- x + 30
+x <- x + 31
+x <- x + 32
+x <- x + 33
+x <- x + 34
+x <- x + 35
+x <- x + 36
+x <- x + 37
+x <- x + 38
+x <- x + 39
+x <- x + 40
+x <- x + 41
+x <- x + 42
+x <- x + 43
+x <- x + 44
+x <- x + 45
+x <- x + 46
+x <- x + 47
+x <- x + 48
+x <- x + 49
+x <- x + 50
+x <- x + 51
+x <- x + 52
+x <- x + 53
+x <- x + 54
+x <- x + 55
+x <- x + 56
+x <- x + 57
+x <- x + 58
+x <- x + 59
+x <- x + 60
+x <- x + 61
+x <- x + 62
+x <- x + 63
+x <- x + 64
+x <- x + 65
+x <- x + 66
+x <- x + 67
+x <- x + 68
+x <- x + 69
+x <- x + 70
+\end{pseudo}
+\lptrue{a long pseudo environment breaks across pages}{\ifnum\value{page}>\lpstart}
+% span=false keeps even a long box in one piece
+% (checked on the decision: where an over-full page is shipped out is not
+% a stable thing to test)
+\clearpage
+\python[span=false]{code/long.py}
+\ExplSyntaxOn
+\lptrue{span=false~keeps~a~long~box~unbreakable}
+  { \str_if_eq:VnTF \l__latexpro_code_span_tl { false } { \iftrue } { \iffalse } }
+\ExplSyntaxOff
+\clearpage
+\python{code/long.py}
+\ExplSyntaxOn
+\lptrue{a~box~taller~than~a~page~is~made~breakable}
+  { \str_if_eq:VnTF \l__latexpro_code_span_tl { true } { \iftrue } { \iffalse } }
+\ExplSyntaxOff
+\python{code/sample.py}
+\ExplSyntaxOn
+\lptrue{a~short~box~stays~unbreakable}
+  { \str_if_eq:VnTF \l__latexpro_code_span_tl { false } { \iftrue } { \iffalse } }
+\ExplSyntaxOff
+% [span] still lets any box break
+\clearpage \lpstart=\value{page}
+\python[span]{code/long.py}
+\lptrue{python span breaks across pages}{\ifnum\value{page}>\lpstart}
+% a short box that does not fit at the bottom of a page moves to the next
+% page whole (it is not split); with [span] it is split.  Regression: after
+% one breakable box every later box was breakable too (\tcolorbox without a
+% group kept the option), so these come after the [span] boxes above.
+\clearpage \lpstart=\value{page}
+\null\vspace*{\dimexpr\textheight-8\baselineskip}
+{\lplabelbox{lp-short}\python{code/sample.py}}
+\lptrue{a short box moves to the next page whole}
+  {\ifnum\lpboxpage{lp-short}=\numexpr\lpstart+1\relax}
+\clearpage \lpstart=\value{page}
+\null\vspace*{\dimexpr\textheight-8\baselineskip}
+{\lplabelbox{lp-short-span}\python[span]{code/sample.py}}
+\lptrue{with span a short box is split at the page bottom}
+  {\ifnum\lpboxpage{lp-short-span}=\lpstart}
 \end{document}

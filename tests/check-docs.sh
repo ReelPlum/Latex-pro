@@ -19,6 +19,8 @@ defined="$(
       | grep -oE '\\[A-Za-z@_:]+$'
     # \DeclareTCBListing {pythoncode}
     grep -hoE '\\DeclareTCBListing *\{[A-Za-z@_:]+\}' "${sty[@]}" | grep -oE '\{[A-Za-z@_:]+\}' | tr -d '{}'
+    # \NewDocumentEnvironment { pythoncode }
+    grep -hoE '\\NewDocumentEnvironment *\{ *[A-Za-z@_:]+ *\}' "${sty[@]}" | grep -oE '\{ *[A-Za-z@_:]+' | tr -d '{ '
     # \latexpro_newthm:nnn { theorem } ..., \latexpro_newref:nn { booksection } ...
     grep -hoE '^\\latexpro_new(thm:nnn|ref:nn) *\{ *[A-Za-z@_:]+' "${sty[@]}" | grep -oE '[A-Za-z@_:]+$'
     # \newif\ifpseudoindent -> \pseudoindenttrue / \pseudoindentfalse
