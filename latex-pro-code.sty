@@ -179,26 +179,35 @@
     extras last={sharp corners=north, overlay={\latexpro@wave{north}{-1}}}}}%
   \providecolor{latexpro@pagebg}{named}{white}%
 }
-% \latexpro@wave{south}{1} / {north}{-1}: cut that edge of a box part in a wave, by
-% covering everything beyond the wave in the page colour (latexpro@pagebg).
-% \latexprowaveheight is the height of the wave, \latexprowavelength one
-% period of it.
+% \latexpro@wave{south}{1} / {north}{-1}: cut that edge of a box part in a
+% wave, by covering everything beyond the wave (border included, so the side
+% borders stop where the wave meets them) in the page colour
+% (latexpro@pagebg). \latexprowaveheight is the height of the wave,
+% \latexprowavelength one period of it at length=1; the box option
+% length=x makes the period x times as long.
 \newcommand\latexprowaveheight{1.8pt}
 \newcommand\latexprowavelength{14pt}
+\newcommand\latexpro@wavefactor{1}
+\newdimen\latexpro@wavedim
 \newcommand\latexpro@wave[2]{%
-  \tcbsetmacrotowidthofnode\latexpro@wavew{frame}%
-  \pgfmathsetmacro\latexpro@wavewn{\latexpro@wavew}%
+  % the width of the box, from its own west and east edges
+  \pgfextractx\latexpro@wavedim{\pgfpointanchor{frame}{east}}%
+  \pgfextractx\dimen@{\pgfpointanchor{frame}{west}}%
+  \advance\latexpro@wavedim-\dimen@
+  \pgfmathsetmacro\latexpro@wavewn{\latexpro@wavedim}%
   \pgfmathsetmacro\latexpro@waveh{\latexprowaveheight}%
-  \pgfmathsetmacro\latexpro@wavel{\latexprowavelength}%
+  \pgfmathsetmacro\latexpro@wavel{\latexprowavelength*\latexpro@wavefactor}%
   % the wave runs 2 heights in from the edge; #2 = 1 for south, -1 for north
   \def\latexpro@waves{#2}%
   \fill[latexpro@pagebg]
-    ([yshift=\latexpro@waves*2*\latexpro@waveh pt]frame.#1 west)
-    -- plot[domain=0:\latexpro@wavewn, samples=\latexpro@wavewn/2, variable=\t]
+    ([xshift=-1pt, yshift=\latexpro@waves*2*\latexpro@waveh pt]frame.#1 west)
+    -- plot[domain=0:\latexpro@wavewn, samples={max(2,\latexpro@wavewn/2)}, variable=\t]
        ([xshift=\t pt,
          yshift={\latexpro@waves*(2*\latexpro@waveh+\latexpro@waveh*sin(\t/\latexpro@wavel*360))*1pt}]frame.#1 west)
-    -- ([yshift=-\latexpro@waves*1pt]frame.#1 east)
-    -- ([yshift=-\latexpro@waves*1pt]frame.#1 west) -- cycle;}
+    -- ([xshift=1pt,
+         yshift={\latexpro@waves*(2*\latexpro@waveh+\latexpro@waveh*sin(\latexpro@wavewn/\latexpro@wavel*360))*1pt}]frame.#1 east)
+    -- ([xshift=1pt, yshift=-\latexpro@waves*1pt]frame.#1 east)
+    -- ([xshift=-1pt, yshift=-\latexpro@waves*1pt]frame.#1 west) -- cycle;}
 % keywords and operators: listings also hands operators (otherkeywords such
 % as = - +) inside comments and strings to keywordstyle, so colour them only
 % in ordinary code (\lst@Pmode), never in a comment or a string
@@ -287,6 +296,8 @@
     % [filename=false]: no file name on the right of the header bar
     filename .bool_set:N = \l__latexpro_code_filename_bool ,
     filename .default:n  = true ,
+    % [length=x]: the wave on a split edge has x times the usual period
+    length   .code:n     = { \tl_set:Nn \latexpro@wavefactor {#1} } ,
   }
 \AddToHook{begindocument/before}
   {
@@ -358,6 +369,7 @@
     \tl_clear:N \l__latexpro_code_caption_tl
     \tl_set:Nn \l__latexpro_code_span_tl { auto }
     \bool_set_true:N \l__latexpro_code_filename_bool
+    \tl_set:Nn \latexpro@wavefactor { 1 }
     \keys_set_known:nnN { latexpro / code } {#1} \l__latexpro_code_lst_clist
     \bool_lazy_and:nnT
       { \tl_if_empty_p:N \l__latexpro_code_caption_tl }

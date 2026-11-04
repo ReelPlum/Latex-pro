@@ -173,6 +173,16 @@ Text with \method{merge} in it.
 \__test_header:nn { filename } { file.txt }
 \lptrue{bare~filename~key~shows~the~file~name}
   { \str_if_eq:eeTF { \tl_to_str:N \g_tmpa_tl } { file.txt } { \iftrue } { \iffalse } }
+% [length=x]: the wave period of a split edge, x times the usual; default 1
+\__latexpro_code_opts:n { length = 3 , firstline = 2 }
+\lptrue{length~sets~the~wave~factor}
+  { \str_if_eq:eeTF { \use:c { latexpro@wavefactor } } { 3 } { \iftrue } { \iffalse } }
+\lptrue{length~is~not~passed~to~listings}
+  { \str_if_eq:eeTF { \clist_use:Nn \l__latexpro_code_lst_clist { ; } }
+      { firstline=\c_left_brace_str 2\c_right_brace_str } { \iftrue } { \iffalse } }
+\__latexpro_code_opts:n { }
+\lptrue{without~length~the~wave~factor~is~1}
+  { \str_if_eq:eeTF { \use:c { latexpro@wavefactor } } { 1 } { \iftrue } { \iffalse } }
 \__latexpro_code_opts:n { title = T }
 \lptrue{title~is~the~same~as~caption}
   { \str_if_eq:eeTF { \l__latexpro_code_caption_tl } { T } { \iftrue } { \iffalse } }
