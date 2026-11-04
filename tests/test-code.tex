@@ -88,6 +88,33 @@ Text with \method{merge} in it.
 \lptrue{method uses small caps (taller than tt lowercase)}
   {\sbox0{\method{merge}}\sbox2{\ttfamily merge}\ifdim\ht0>\ht2 }
 
+% // and /* */ comments in pseudocode. Regression: "/" was an operator
+% (otherkeyword), which stopped listings from ever seeing "//" as a comment,
+% and "*" in "/*" was turned into \cdot.
+\pseudo{code/comments.txt}
+\lpsamefile{pseudo comments: / coloured only outside comments, /* kept}{\pseudotmp}{code/comments-expected.txt}
+\makeatletter
+\newcommand\lpcomments[2]{% #1 listings style, #2 code: sets \lpsawcomment, \lpsawkw
+  \begingroup
+  \let\lporigcolor\color
+  \def\lpkwname{latexpro@keyword}%
+  \def\color##1{\def\lptmp{##1}\ifx\lptmp\lpkwname\gdef\lpsawkw{1}\fi\lporigcolor{##1}}%
+  \gdef\lpsawkw{0}\gdef\lpsawcomment{0}%
+  \sbox0{\lstinline[style=#1,commentstyle=\gdef\lpsawcomment{1}]{#2}}%
+  \endgroup}
+\makeatother
+\lpcomments{latexpro-pseudo}{// a-b = c}
+\lptrue{pseudo // starts a comment}{\ifnum\lpsawcomment=1 }
+\lptrue{operators inside a pseudo comment are not coloured}{\ifnum\lpsawkw=0 }
+\lpcomments{latexpro-pseudo}{x /* a-b */}
+\lptrue{pseudo /* */ is a comment}{\ifnum\lpsawcomment=1 }
+\lpcomments{latexpro-pseudo}{a-b}
+\lptrue{operators in pseudo code are coloured}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{x # a-b = c}
+\lptrue{operators inside a Python comment are not coloured}{\ifnum\lpsawkw=0 }
+\lpcomments{latexpro-python}{s = 1}
+\lptrue{operators in Python code are coloured}{\ifnum\lpsawkw=1 }
+
 % filename=false hides the file name in the header bar
 \python[filename=false]{code/sample.py}
 \pseudo[filename=false]{code/indent.txt}

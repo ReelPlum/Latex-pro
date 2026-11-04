@@ -2,7 +2,7 @@ function search(A, x)
 lo $\gets$ 1
 hi $\gets$ n
 while lo $\leq$ hi do
-m $\gets$ (lo + hi) / 2
+m $\gets$ (lo + hi) ${\color{latexpro@keyword}/}$ 2
 if $A_m$ = x then return m
 if $A_m$ $<$ x then
 lo $\gets$ m + 1

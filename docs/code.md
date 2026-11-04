@@ -74,7 +74,11 @@ What `\pseudo` does with the file:
 - **Keywords highlighted**, case-insensitive: `function procedure algorithm
   return if then else elseif end for foreach each to downto by step do in
   while repeat until loop break continue and or not true false null print
-  input output let call begin …`. `// …` and `/* … */` are comments.
+  input output let call begin …`.
+- **Comments.** `// …` (to the end of the line, also after code, as in
+  `return x // done`) and `/* … */` are grey italic comments. Keywords and
+  operators inside a comment are not coloured; maths such as `a <= b` or
+  `\alpha` still becomes symbols.
 - **Maths.** TeX commands are typeset as maths, so `x \geq y`, `s \gets 0`,
   `\alpha_i^2`, `\epsilon` come out as symbols. `<=`, `>=`, `!=`, `<-`,
   `->`, `<`, `>` and `*` become ≤ ≥ ≠ ← → < > ·, and single-letter
