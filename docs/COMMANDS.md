@@ -329,6 +329,7 @@ These go in `[opts]` of `\python`, `\pseudo`, `pythoncode` and `pseudo`.
 | `filename=false` | hide the file name in the header bar | `true` |
 | `span` | let the box break across pages, even a short one (split edges are wavy, with no border) | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
 | `span=false` | never break, even a box taller than a page | |
+| `length=x` | the wave on a split edge is x times as long | `1` |
 | any `listings` option | passed on, e.g. `firstline=10`, `lastline=25`, `numbers=none`, `firstnumber=5` | |
 
 ```latex
