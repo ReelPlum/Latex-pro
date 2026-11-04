@@ -18,11 +18,16 @@
 %                                  ...) highlighted, \geq \leq \gets <= != ... as
 %                                  maths, and indented automatically
 %   \pseudo[caption=..]{f.txt}  \pseudo*{f.txt}   same options as \python
+%   \python[filename=false]{f.py}  no file name on the right of the header
+%                                  (also \pseudo; caption=.. replaces it)
+%   \begin{pseudo} ... \end{pseudo}   pseudocode typed in the .tex file,
+%                                  same handling as \pseudo (also pseudo*,
+%                                  and the longer name pseudocode)
 %   \pseudoindentfalse             keep the file's own indentation
 %   Restyle with \lstdefinestyle{latexpro-python}{...} (or latexpro-pseudo).
 %
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
-\ProvidesPackage{latex-pro-code}[2026/11/03 v0.3 latex-pro: code listings]
+\ProvidesPackage{latex-pro-code}[2026/11/04 v0.4 latex-pro: code listings]
 
 \RequirePackage{listings}
 
@@ -131,6 +136,7 @@
 \tl_new:N \l__latexpro_code_caption_tl
 \clist_new:N \l__latexpro_code_lst_clist
 \bool_new:N \l__latexpro_code_span_bool
+\bool_new:N \l__latexpro_code_filename_bool
 \keys_define:nn { latexpro / code }
   {
     caption .tl_set:N = \l__latexpro_code_caption_tl ,
@@ -138,6 +144,9 @@
     % [span]: the box may break across pages (default: kept in one piece)
     span    .bool_set:N = \l__latexpro_code_span_bool ,
     span    .default:n  = true ,
+    % [filename=false]: no file name on the right of the header bar
+    filename .bool_set:N = \l__latexpro_code_filename_bool ,
+    filename .default:n  = true ,
   }
 \AddToHook{begindocument/before}
   {
@@ -205,8 +214,11 @@
   {
     \tl_clear:N \l__latexpro_code_caption_tl
     \bool_set_false:N \l__latexpro_code_span_bool
+    \bool_set_true:N \l__latexpro_code_filename_bool
     \keys_set_known:nnN { latexpro / code } {#3} \l__latexpro_code_lst_clist
-    \tl_if_empty:NT \l__latexpro_code_caption_tl
+    \bool_lazy_and:nnT
+      { \tl_if_empty_p:N \l__latexpro_code_caption_tl }
+      { \l__latexpro_code_filename_bool }
       { \tl_set:Nn \l__latexpro_code_caption_tl {#4} }
     \tcolorbox
       [
@@ -445,12 +457,11 @@
     \iow_close:N \g__latexpro_pseudo_iow
     \ior_close:N \g__latexpro_pseudo_ior
   }
-\NewDocumentCommand\pseudo{s O{} m}
+% #1 star bool, #2 options, #3 file, #4 header text when there is no caption
+\cs_new_protected:Npn \__latexpro_pseudo_input:Nnnn #1#2#3#4
   {
     \__latexpro_pseudo_prepare:n {#3}
-    \bool_set:Nn \l_tmpa_bool {#1}
-    \__latexpro_code_begin:nnnn { Pseudocode } \l_tmpa_bool {#2}
-      { \__latexpro_code_file:n {#3} }
+    \__latexpro_code_begin:nnnn { Pseudocode } #1 {#2} {#4}
     \__latexpro_code_harvest:n { \c__latexpro_pseudo_file_str }
     \use:e
       {
@@ -460,6 +471,63 @@
       { \c__latexpro_pseudo_file_str }
     \__latexpro_code_end:
   }
+\NewDocumentCommand \__latexpro_pseudo_cmd: {s O{} m}
+  {
+    \bool_set:Nn \l_tmpa_bool {#1}
+    \__latexpro_pseudo_input:Nnnn \l_tmpa_bool {#2} {#3}
+      { \__latexpro_code_file:n {#3} }
+  }
+% \begin{pseudo}[options] ... \end{pseudo}: the body is written
+% verbatim to \jobname-pseudoenv.tmp and then handled like \pseudo; the
+% header shows only the caption (there is no file name).  pseudo* drops
+% the line numbers.
+\str_const:Ne \c__latexpro_pseudoenv_file_str { \c_sys_jobname_str -pseudoenv.tmp }
+\bool_new:N \l__latexpro_pseudoenv_star_bool
+\tl_new:N \l__latexpro_pseudoenv_opts_tl
+\cs_new_protected:Npn \__latexpro_pseudoenv_begin:nn #1#2
+  {
+    \bool_set:Nn \l__latexpro_pseudoenv_star_bool {#1}
+    \tl_set:Nn \l__latexpro_pseudoenv_opts_tl {#2}
+    \exp_args:NV \tcbverbatimwrite \c__latexpro_pseudoenv_file_str
+  }
+\cs_new_protected:Npn \__latexpro_pseudoenv_end:
+  {
+    \endtcbverbatimwrite
+    % typeset after the environment's group has ended: inside it the
+    % verbatim catcodes are still active and mathescape would print \gets
+    % literally instead of as maths
+    \hook_gput_next_code:ee { env / \@currenvir / after }
+      {
+        \exp_not:N \__latexpro_pseudo_input:Nnnn
+          \bool_if:NTF \l__latexpro_pseudoenv_star_bool
+            { \exp_not:N \c_true_bool } { \exp_not:N \c_false_bool }
+          { \exp_not:V \l__latexpro_pseudoenv_opts_tl }
+          { \c__latexpro_pseudoenv_file_str }
+          { }
+      }
+  }
+\cs_generate_variant:Nn \hook_gput_next_code:nn { ee }
+\NewDocumentCommand \__latexpro_pseudoenv: { O{} }
+  { \__latexpro_pseudoenv_begin:nn { \c_false_bool } {#1} }
+\NewDocumentCommand \__latexpro_pseudoenv_star: { O{} }
+  { \__latexpro_pseudoenv_begin:nn { \c_true_bool } {#1} }
+% \pseudo is both a command (\pseudo{file.txt}) and an environment
+% (\begin{pseudo} ... \end{pseudo}): \begin{pseudo} sets \@currenvir to
+% "pseudo" before it calls \pseudo, which then starts the environment.
+\str_const:Nn \c__latexpro_pseudo_env_str { pseudo }
+\cs_new_protected:Npn \pseudo
+  {
+    \str_if_eq:VVTF \@currenvir \c__latexpro_pseudo_env_str
+      { \__latexpro_pseudoenv: } { \__latexpro_pseudo_cmd: }
+  }
+\cs_new_protected:Npn \endpseudo { \__latexpro_pseudoenv_end: }
+\cs_new_protected:cpn { pseudo* } { \__latexpro_pseudoenv_star: }
+\cs_new_protected:cpn { endpseudo* } { \__latexpro_pseudoenv_end: }
+% the same under a longer name
+\cs_new_eq:NN \pseudocode \__latexpro_pseudoenv:
+\cs_new_eq:NN \endpseudocode \__latexpro_pseudoenv_end:
+\cs_new_eq:cc { pseudocode* } { pseudo* }
+\cs_new_eq:cc { endpseudocode* } { endpseudo* }
 \ExplSyntaxOff
 
 \endinput

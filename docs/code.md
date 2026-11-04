@@ -12,6 +12,13 @@ relative to the main `.tex` file.
 \python[firstline=10, lastline=25]{solve.py} % only part of the file
 \python*{solve.py}                           % no line numbers
 \pseudo{algorithms/search.txt}               % pseudocode
+\pseudo[filename=false]{search.txt}          % no file name in the header
+
+\begin{pseudo}[caption={Binary search}]      % pseudocode typed in the .tex file
+function search(A, x)
+...
+end function
+\end{pseudo}
 ```
 
 | Command | Result |
@@ -22,11 +29,14 @@ relative to the main `.tex` file.
 | `\py{x = 1}` | a short piece of Python inline in a sentence |
 | `\pseudo[opts]{file.txt}` | a plain-text pseudocode file, highlighted and indented |
 | `\pseudo*{file.txt}` | the same without line numbers |
+| `\begin{pseudo} ... \end{pseudo}` | pseudocode typed straight into the `.tex` file, handled exactly like `\pseudo` (`pseudo*` drops the line numbers; `pseudocode` is the same environment) |
 | `\pseudoindentfalse` | from here on, keep the file's own indentation (`\pseudoindenttrue` turns it back on) |
 
 `opts` is `span` (let the box break across pages) or any `listings` option
 (`firstline`, `lastline`, `numbers=none`, …). `caption={…}` (or `title={…}`) is shown on the right of the header bar;
-without it the header shows the file name.
+without it the header shows the file name. `filename=false` hides the file
+name (works for `\python` and `\pseudo`): `\pseudo[filename=false]{algo.txt}`.
+`\begin{pythoncode}` and `\begin{pseudo}` have no file, so they only show a caption.
 
 ### Look
 

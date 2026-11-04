@@ -14,6 +14,7 @@
 \lpdefined{python}{\python}
 \lpdefined{py}{\py}
 \lpdefined{pseudo}{\pseudo}
+\lpdefined{endpseudo}{\endpseudo}
 \python{code/sample.py}
 \python*[firstline=1, lastline=2, caption={Part of a file}]{code/sample.py}
 Inline \py{x -= f(x) / df(x)} and \py|a = {1: 2}|.
@@ -29,6 +30,44 @@ print("æøå")  # non-ASCII letters work with pdflatex
 \lpsamefile{pseudoindentfalse keeps the indentation}{\pseudotmp}{code/indent-flat-expected.txt}
 \pseudoindenttrue
 
+% pseudocode typed in the .tex file goes through the same steps as \pseudo
+\begin{pseudo}[caption=Typed in]
+function search(A, x)
+for i <- 1 to n do
+if A_i = x then
+return i
+end if
+end for
+return 0
+end function
+\end{pseudo}
+\lpsamefile{pseudo environment indents like the pseudo command}{\pseudotmp}{code/env-expected.txt}
+% regression: the box was typeset while the verbatim catcodes were still
+% active, so mathescape printed "\gets" instead of the arrow
+\begingroup
+\tcbset{latexpro-code/.append style={before upper=\xdef\lpcatbackslash{\the\catcode`\\}}}
+\begin{pseudo}
+x <- 1
+\end{pseudo}
+\endgroup
+\lptrue{pseudo environment is typeset with normal catcodes}{\ifnum\lpcatbackslash=0 }
+\begin{pseudo*}
+if x then
+y
+end if
+\end{pseudo*}
+\lpsamefile{pseudo* environment}{\pseudotmp}{code/env-star-expected.txt}
+\begin{pseudocode}
+if x then
+y
+end if
+\end{pseudocode}
+\lpsamefile{pseudocode is the same environment}{\pseudotmp}{code/env-star-expected.txt}
+
+% filename=false hides the file name in the header bar
+\python[filename=false]{code/sample.py}
+\pseudo[filename=false]{code/indent.txt}
+
 % caption / title go to the header bar, the rest stays listings options
 \ExplSyntaxOn
 \__latexpro_code_opts:n { caption = {Newton's~method}, firstline=2, lastline=5 }
@@ -36,6 +75,24 @@ print("æøå")  # non-ASCII letters work with pdflatex
   { \str_if_eq:eeTF { \tl_to_str:N \l__latexpro_code_caption_tl } { Newton's~method } { \iftrue } { \iffalse } }
 \lptrue{other~options~go~to~listings}
   { \str_if_eq:eeTF { \clist_use:Nn \l__latexpro_code_lst_clist { ; } } { firstline=\c_left_brace_str 2\c_right_brace_str;lastline=\c_left_brace_str 5\c_right_brace_str } { \iftrue } { \iffalse } }
+\cs_new_protected:Npn \__test_header:nn #1#2
+  {
+    \__latexpro_code_begin:nnnn { X } \c_false_bool {#1} {#2}
+    \tl_gset_eq:NN \g_tmpa_tl \l__latexpro_code_caption_tl
+    \__latexpro_code_end:
+  }
+\__test_header:nn { } { file.txt }
+\lptrue{header~shows~the~file~name~by~default}
+  { \str_if_eq:eeTF { \tl_to_str:N \g_tmpa_tl } { file.txt } { \iftrue } { \iffalse } }
+\__test_header:nn { filename = false } { file.txt }
+\lptrue{filename=false~leaves~the~header~empty}
+  { \tl_if_empty:NTF \g_tmpa_tl { \iftrue } { \iffalse } }
+\__test_header:nn { filename = false , caption = C } { file.txt }
+\lptrue{caption~still~shows~with~filename=false}
+  { \str_if_eq:eeTF { \tl_to_str:N \g_tmpa_tl } { C } { \iftrue } { \iffalse } }
+\__test_header:nn { filename } { file.txt }
+\lptrue{bare~filename~key~shows~the~file~name}
+  { \str_if_eq:eeTF { \tl_to_str:N \g_tmpa_tl } { file.txt } { \iftrue } { \iffalse } }
 \__latexpro_code_opts:n { title = T }
 \lptrue{title~is~the~same~as~caption}
   { \str_if_eq:eeTF { \l__latexpro_code_caption_tl } { T } { \iftrue } { \iffalse } }
