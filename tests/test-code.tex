@@ -64,6 +64,30 @@ end if
 \end{pseudocode}
 \lpsamefile{pseudocode is the same environment}{\pseudotmp}{code/env-star-expected.txt}
 
+% function names are set in small caps (\textsc) in a font that has them
+\lpdefined{latexprofunctionfont}{\latexprofunctionfont}
+\makeatletter
+{\latexprocodefont\latexprofunctionfont
+ \xdef\lpfnshape{\f@shape}%
+ \xdef\lpfnfont{\expandafter\ifx\csname\f@encoding/\f@family/\f@series/\f@shape\endcsname\relax 0\else 1\fi}}
+\makeatother
+\lptrue{function names use the small-caps shape}{\ifnum\pdfstrcmp{\lpfnshape}{sc}=0 }
+\lptrue{the code font has a small-caps shape}{\ifnum\lpfnfont=1 }
+\makeatletter
+\long\def\lpidentexpected{\iflatexpro@fn\global\latexpro@fnfalse\latexpro@functionstyle\fi}
+\lptrue{name after def/function uses the function style}{\ifx\latexpro@ident\lpidentexpected}
+\makeatother
+
+% \method{name}: a function name in running text, styled as in the code
+\lpdefined{method}{\method}
+Text with \method{merge} in it.
+\makeatletter
+\lpsametext{method looks like a function name in code}
+  {\method{merge}}{{\latexprocodefont\color{latexpro@function}\scshape merge}}
+\makeatother
+\lptrue{method uses small caps (taller than tt lowercase)}
+  {\sbox0{\method{merge}}\sbox2{\ttfamily merge}\ifdim\ht0>\ht2 }
+
 % filename=false hides the file name in the header bar
 \python[filename=false]{code/sample.py}
 \pseudo[filename=false]{code/indent.txt}

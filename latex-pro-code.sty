@@ -13,6 +13,8 @@
 %                                  (default: the box is kept in one piece)
 %   \begin{pythoncode} ... \end{pythoncode}   Python typed in the .tex file
 %   \py{x = 1}                     short inline Python inside a sentence
+%   \method{merge}                 a function name in the text, styled like
+%                                  function names in the code blocks
 %   \pseudo{algo.txt}              include a pseudocode .txt file: keywords
 %                                  (if/then/else/for/while/repeat/return/end
 %                                  ...) highlighted, \geq \leq \gets <= != ... as
@@ -36,16 +38,25 @@
 % ---------------------------------------------------------------------------
 % Every block is a rounded box with a header bar naming the language (and the
 % caption or file name on the right), a rule under it, a monospace font and
-% GitHub-light colours. Change a colour with \definecolor after loading,
+% GitHub-light colours. Function names are in small caps. Change a colour with \definecolor after loading,
 % e.g. \definecolor{latexpro@keyword}{HTML}{D73A49}, the font with
 % \renewcommand\latexprocodefont{\ttfamily}, the box with
 % \tcbset{latexpro-code/.append style={...}}.
 \newcommand\latexprocodefont{\ttfamily}
+% function / method names (merge in "function merge(A, B)", newton in
+% "def newton(x)" and wherever they are called) are set in small caps, like
+% \textsc{merge}; \renewcommand\latexprofunctionfont{} turns that off.
+\newcommand\latexprofunctionfont{\scshape}
+% the whole look of a function name, shared by listings and \method
+\newcommand\latexpro@functionstyle{\color{latexpro@function}\latexprofunctionfont}
+% \method{merge}: a function / method name in running text, in the same
+% font, colour and small caps as in the code blocks
+\NewDocumentCommand\method{m}{{\latexprocodefont\latexpro@functionstyle #1}}
 \newif\iflatexpro@fn
 \newcommand\latexpro@fnnext{\global\latexpro@fntrue}
 % identifiers: the name right after def / class / function is a function name
 \newcommand\latexpro@ident{%
-  \iflatexpro@fn\global\latexpro@fnfalse\color{latexpro@function}\fi}
+  \iflatexpro@fn\global\latexpro@fnfalse\latexpro@functionstyle\fi}
 % xcolor and tcolorbox are loaded at \begin{document} if the document has not
 % loaded them, so \usepackage[...]{xcolor} anywhere in the preamble never gives
 % an option clash.
@@ -84,7 +95,7 @@
   keywordstyle=[4]\color{latexpro@keyword}\latexpro@fnnext,
   stringstyle=\color{latexpro@string},
   commentstyle=\color{latexpro@comment}\itshape,
-  emphstyle=\global\latexpro@fnfalse\color{latexpro@function},
+  emphstyle=\global\latexpro@fnfalse\latexpro@functionstyle,
   numbers=left,
   numberstyle=\scriptsize\latexprocodefont\color{latexpro@number},
   numbersep=1em,
