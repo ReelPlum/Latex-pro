@@ -24,6 +24,9 @@ every module is found.
 **Option B, per project.** Copy every `latex-pro*.sty` file next to your
 `.tex` file.
 
+**Command reference:** [docs/COMMANDS.md](docs/COMMANDS.md) lists every
+command, environment, option and setting on one page, with examples.
+
 ## Modules
 
 `latex-pro.sty` only loads the modules below. Each one can also be loaded on
@@ -69,8 +72,9 @@ give, using `tests/lptest.sty`:
 
 To keep parallel changes from colliding:
 
-- Put a new command in the module it belongs to, and add its row to that
-  module's `docs/<module>.md`, an example to `examples/<module>.tex` and a
+- Put a new command in the module it belongs to, and add it to
+  [`docs/COMMANDS.md`](docs/COMMANDS.md) (index and topic section; `tests/check-docs.sh`
+  fails if it is missing) and to that module's `docs/<module>.md`, an example to `examples/<module>.tex` and a
   check to `tests/test-<module>.tex`.
 - A new topic gets its own `latex-pro-<topic>.sty`, `docs/<topic>.md`,
   `examples/<topic>.tex` and `tests/test-<topic>.tex`, plus one

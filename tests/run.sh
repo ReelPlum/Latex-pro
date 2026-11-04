@@ -69,6 +69,16 @@ $(tail -n +3 "$out/qr-diff.txt")"
   fi
 done
 
+# docs/COMMANDS.md must list every command (skipped when a filter is given)
+if [[ -z "$filter" ]]; then
+  if "$root/tests/check-docs.sh"; then
+    pass=$((pass + 1))
+  else
+    fail=$((fail + 1))
+    failed+=("check-docs")
+  fi
+fi
+
 echo
 echo "$pass file(s) passed, $fail failed"
 if ((fail > 0)); then
