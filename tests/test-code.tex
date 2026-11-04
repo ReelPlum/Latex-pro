@@ -389,13 +389,32 @@ x <- x + 70
 % one breakable box every later box was breakable too (\tcolorbox without a
 % group kept the option), so these come after the [span] boxes above.
 \clearpage \lpstart=\value{page}
-\null\vspace*{\dimexpr\textheight-8\baselineskip}
+\noindent\rule{1pt}{\dimexpr\textheight-10\baselineskip}\par
 {\lplabelbox{lp-short}\python{code/sample.py}}
 \lptrue{a short box moves to the next page whole}
   {\ifnum\lpboxpage{lp-short}=\numexpr\lpstart+1\relax}
 \clearpage \lpstart=\value{page}
-\null\vspace*{\dimexpr\textheight-8\baselineskip}
+\noindent\rule{1pt}{\dimexpr\textheight-10\baselineskip}\par
 {\lplabelbox{lp-short-span}\python[span]{code/sample.py}}
 \lptrue{with span a short box is split at the page bottom}
   {\ifnum\lpboxpage{lp-short-span}=\lpstart}
+% span=false in the pseudo environment, right after a [span] box: kept
+% whole (reported: span=false did not work, because of the same leak)
+\clearpage \lpstart=\value{page}
+\noindent\rule{1pt}{\dimexpr\textheight-10\baselineskip}\par
+{\lplabelbox{lp-pseudo-false}%
+\begin{pseudo}[span=false]
+function f(x)
+x <- 1
+x <- 2
+x <- 3
+x <- 4
+x <- 5
+x <- 6
+x <- 7
+return x
+end function
+\end{pseudo}}
+\lptrue{pseudo environment with span=false moves to the next page whole}
+  {\ifnum\lpboxpage{lp-pseudo-false}=\numexpr\lpstart+1\relax}
 \end{document}
