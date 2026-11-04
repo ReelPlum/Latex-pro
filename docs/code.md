@@ -33,7 +33,7 @@ end function
 | `\begin{pseudo} ... \end{pseudo}` | pseudocode typed straight into the `.tex` file, handled exactly like `\pseudo` (`pseudo*` drops the line numbers; `pseudocode` is the same environment) |
 | `\pseudoindentfalse` | from here on, keep the file's own indentation (`\pseudoindenttrue` turns it back on) |
 
-`opts` is `span` (let the box break across pages) or any `listings` option
+`opts` is `span` / `span=false` (see *Long code* below) or any `listings` option
 (`firstline`, `lastline`, `numbers=none`, …). `caption={…}` (or `title={…}`) is shown on the right of the header bar;
 without it the header shows the file name. `filename=false` hides the file
 name (works for `\python` and `\pseudo`): `\pseudo[filename=false]{algo.txt}`.
@@ -54,11 +54,13 @@ with GitHub-light colours, like a code block in an editor:
 | strings | dark blue |
 | comments | grey italic |
 
-A box is kept in one piece by default. Add `span` to let a long listing run
-over several pages: `\python[span]{long.py}`, `\pseudo[span]{algo.txt}`,
-`\begin{pythoncode}[span]`. For every block at once, put
-`\tcbset{latexpro-code/.append style={breakable}}` after loading. Nothing needs
-`-shell-escape`. Change the look after loading the package, e.g.
+**Long code.** A box that fits on a page is kept in one piece: if it does
+not fit at the bottom of the current page it moves to the next one. A box
+taller than a whole page breaks across as many pages as it needs (the header
+stays on the first part). `span` lets any box break, even a short one at the
+bottom of a page: `\python[span]{f.py}`, `\pseudo[span]{algo.txt}`,
+`\begin{pythoncode}[span]`; `span=false` never breaks, even a box taller
+than a page. Nothing needs `-shell-escape`. Change the look after loading the package, e.g.
 
 ```latex
 \definecolor{latexpro@keyword}{HTML}{D73A49}   % other colours: latexpro@function,

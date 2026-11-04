@@ -9,9 +9,12 @@
 %   \python[caption=Solver]{f.py}  caption/title go in the header bar, any
 %                                  other listings option, e.g. firstline=5
 %   \python*{f.py}                 same, without line numbers
-%   \python[span]{f.py}            let a long listing break across pages
-%                                  (default: the box is kept in one piece)
+%   (long boxes)                   a box taller than a page breaks across
+%                                  pages by itself; a shorter one is kept in
+%                                  one piece (moved to the next page)
+%   \python[span]{f.py}            may always break; span=false: never
 %   \begin{pythoncode} ... \end{pythoncode}   Python typed in the .tex file
+%                                  (pythoncode* without line numbers)
 %   \py{x = 1}                     short inline Python inside a sentence
 %   \method{merge}                 a function name in the text, styled like
 %                                  function names in the code blocks
@@ -29,7 +32,7 @@
 %   Restyle with \lstdefinestyle{latexpro-python}{...} (or latexpro-pseudo).
 %
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
-\ProvidesPackage{latex-pro-code}[2026/11/04 v0.4 latex-pro: code listings]
+\ProvidesPackage{latex-pro-code}[2026/11/04 v0.5 latex-pro: code listings]
 
 \RequirePackage{listings}
 
@@ -151,14 +154,19 @@
 % [caption=..] / [title=..] go in the header bar, every other option to listings
 \tl_new:N \l__latexpro_code_caption_tl
 \clist_new:N \l__latexpro_code_lst_clist
-\bool_new:N \l__latexpro_code_span_bool
+\tl_new:N \l__latexpro_code_span_tl
+\box_new:N \l__latexpro_code_box
 \bool_new:N \l__latexpro_code_filename_bool
 \keys_define:nn { latexpro / code }
   {
     caption .tl_set:N = \l__latexpro_code_caption_tl ,
     title   .tl_set:N = \l__latexpro_code_caption_tl ,
-    % [span]: the box may break across pages (default: kept in one piece)
-    span    .bool_set:N = \l__latexpro_code_span_bool ,
+    % span=auto (default): kept in one piece, unless it is taller than a
+    % page, then it breaks across pages; [span] / span=true: may always
+    % break; span=false: never breaks
+    span    .choices:nn =
+      { auto , true , false }
+      { \tl_set_eq:NN \l__latexpro_code_span_tl \l_keys_choice_tl } ,
     span    .default:n  = true ,
     % [filename=false]: no file name on the right of the header bar
     filename .bool_set:N = \l__latexpro_code_filename_bool ,
@@ -169,7 +177,10 @@
     \tcbset
       {
         latexpro-code-span/.code =
-          { \bool_if:NT \l__latexpro_code_span_bool { \pgfkeysalso { breakable } } }
+          {
+            \str_if_eq:VnT \l__latexpro_code_span_tl { true }
+              { \pgfkeysalso { breakable } }
+          }
       }
   }
 % Function names: every name written as name( or after def / class /
@@ -224,18 +235,26 @@
           { emph = { \seq_use:Nn \l__latexpro_code_names_seq { , } } }
       }
   }
-% #1 language name, #2 star (no numbers), #3 options, #4 text for the right of
-% the header when there is no caption (file name or empty)
-\cs_new_protected:Npn \__latexpro_code_begin:nnnn #1#2#3#4
+% #1 options, #2 text for the right of the header when there is no caption
+% (file name or empty): sets the caption, span and the listings options
+\cs_new_protected:Npn \__latexpro_code_setup:nn #1#2
   {
     \tl_clear:N \l__latexpro_code_caption_tl
-    \bool_set_false:N \l__latexpro_code_span_bool
+    \tl_set:Nn \l__latexpro_code_span_tl { auto }
     \bool_set_true:N \l__latexpro_code_filename_bool
-    \keys_set_known:nnN { latexpro / code } {#3} \l__latexpro_code_lst_clist
+    \keys_set_known:nnN { latexpro / code } {#1} \l__latexpro_code_lst_clist
     \bool_lazy_and:nnT
       { \tl_if_empty_p:N \l__latexpro_code_caption_tl }
       { \l__latexpro_code_filename_bool }
-      { \tl_set:Nn \l__latexpro_code_caption_tl {#4} }
+      { \tl_set:Nn \l__latexpro_code_caption_tl {#2} }
+  }
+\cs_new_protected:Npn \__latexpro_code_opts:n #1 { \__latexpro_code_setup:nn {#1} { } }
+% #1 language name, #2 star bool (no numbers), #3 listings style, #4 file
+\cs_new_protected:Npn \__latexpro_code_draw:nNnn #1#2#3#4
+  {
+    % a group: \tcolorbox without \begin{tcolorbox} has none of its own, so
+    % its options (breakable!) would stay set for every later box
+    \group_begin:
     \tcolorbox
       [
         latexpro-code ,
@@ -248,58 +267,90 @@
       ]
     \bool_if:NT #2 { \lstset { numbers = none , xleftmargin = 0pt } }
     \global \latexpro@fnfalse
-  }
-\cs_new_protected:Npn \__latexpro_code_end: { \endtcolorbox }
-\cs_new:Npn \__latexpro_code_file:n #1
-  { { \latexprocodefont \footnotesize \tl_to_str:n {#1} } }
-\cs_new_protected:Npn \__latexpro_code_input:nnnnn #1#2#3#4#5
-  {
-    % #1 language, #2 style, #3 star, #4 options, #5 file
-    \__latexpro_code_begin:nnnn {#1} {#3} {#4} { \__latexpro_code_file:n {#5} }
-    \__latexpro_code_harvest:n {#5}
+    \__latexpro_code_harvest:n {#4}
     \use:e
       {
         \exp_not:N \lstinputlisting
-          [ style = #2 , \exp_not:V \l__latexpro_code_lst_clist ]
+          [ style = #3 , \exp_not:V \l__latexpro_code_lst_clist ]
       }
-      {#5}
-    \__latexpro_code_end:
+      {#4}
+    \endtcolorbox
+    \group_end:
   }
+% One code box. #1 language, #2 star bool, #3 options, #4 header text when
+% there is no caption, #5 listings style, #6 file.
+% With span=auto the box is first set unbroken in a \vbox and measured: if
+% it is taller than a page it is made breakable, so it runs on over the next
+% pages instead of running off the bottom of one.
+\cs_new_protected:Npn \__latexpro_code_box:nNnnnn #1#2#3#4#5#6
+  {
+    \__latexpro_code_setup:nn {#3} {#4}
+    \str_if_eq:VnT \l__latexpro_code_span_tl { auto }
+      {
+        \tl_set:Nn \l__latexpro_code_span_tl { false }
+        \vbox_set:Nn \l__latexpro_code_box
+          { \__latexpro_code_draw:nNnn {#1} #2 {#5} {#6} }
+        \dim_compare:nNnT
+          { \box_ht_plus_dp:N \l__latexpro_code_box } > { \textheight }
+          { \tl_set:Nn \l__latexpro_code_span_tl { true } }
+        \box_clear:N \l__latexpro_code_box
+      }
+    \__latexpro_code_draw:nNnn {#1} #2 {#5} {#6}
+  }
+\cs_new:Npn \__latexpro_code_file:n #1
+  { { \latexprocodefont \footnotesize \tl_to_str:n {#1} } }
 % \python[options]{file.py};  \python* drops the line numbers
 \NewDocumentCommand \python { s O{} m }
   {
     \bool_set:Nn \l_tmpa_bool {#1}
-    \__latexpro_code_input:nnnnn { Python } { latexpro-python }
-      \l_tmpa_bool {#2} {#3}
+    \__latexpro_code_box:nNnnnn { Python } \l_tmpa_bool {#2}
+      { \__latexpro_code_file:n {#3} } { latexpro-python } {#3}
   }
-% #1 options: sets the caption and the listings options for a tcblisting
-\cs_new_protected:Npn \__latexpro_code_opts:n #1
+% Environments whose body is code (pythoncode, pseudo): the body is written
+% verbatim to a file and, once the environment has ended (outside its group
+% the normal catcodes are back, so mathescape works), handed to #1, a
+% function taking the star bool and the options.
+\bool_new:N \l__latexpro_env_star_bool
+\tl_new:N \l__latexpro_env_opts_tl
+\cs_new_protected:Npn \__latexpro_env_begin:nnn #1#2#3
   {
-    \tl_clear:N \l__latexpro_code_caption_tl
-    \bool_set_false:N \l__latexpro_code_span_bool
-    \keys_set_known:nnN { latexpro / code } {#1} \l__latexpro_code_lst_clist
+    % #1 file, #2 star (boolean expression), #3 options
+    \bool_set:Nn \l__latexpro_env_star_bool {#2}
+    \tl_set:Nn \l__latexpro_env_opts_tl {#3}
+    \tcbverbatimwrite {#1}
   }
-% \begin{pythoncode}[options] ... \end{pythoncode}: tcolorbox reads the body
-% verbatim (an \lstnewenvironment cannot sit inside a breakable box)
-\AddToHook{begindocument/before}
+\cs_generate_variant:Nn \hook_gput_next_code:nn { ee }
+\cs_new_protected:Npn \__latexpro_env_end:N #1
   {
-    \tcbuselibrary{listings}
-    \DeclareTCBListing {pythoncode} { O{} }
+    \endtcbverbatimwrite
+    \hook_gput_next_code:ee { env / \@currenvir / after }
       {
-        latexpro-code ,
-        listing~only ,
-        code = { \__latexpro_code_opts:n {#1} \global \latexpro@fnfalse } ,
-        latexpro-code-span ,
-        before~upper = { \__latexpro_code_harvest:n { \kvtcb@listingfile } } ,
-        title =
-          {
-            Python \hfill
-            { \color{latexpro@headerinfo} \l__latexpro_code_caption_tl }
-          } ,
-        listing~options/.expanded =
-          { style = latexpro-python , \exp_not:V \l__latexpro_code_lst_clist } ,
+        \exp_not:N #1
+          \bool_if:NTF \l__latexpro_env_star_bool
+            { \exp_not:N \c_true_bool } { \exp_not:N \c_false_bool }
+          { \exp_not:V \l__latexpro_env_opts_tl }
       }
   }
+% \begin{pythoncode}[options] ... \end{pythoncode}: Python typed in the
+% .tex file; pythoncode* drops the line numbers
+\str_const:Ne \c__latexpro_python_env_file_str { \c_sys_jobname_str -pythoncode.tmp }
+\cs_new_protected:Npn \__latexpro_python_env_run:Nn #1#2
+  {
+    \__latexpro_code_box:nNnnnn { Python } #1 {#2} { } { latexpro-python }
+      { \c__latexpro_python_env_file_str }
+  }
+\NewDocumentEnvironment { pythoncode } { O{} }
+  {
+    \__latexpro_env_begin:nnn { \c__latexpro_python_env_file_str }
+      { \c_false_bool } {#1}
+  }
+  { \__latexpro_env_end:N \__latexpro_python_env_run:Nn }
+\NewDocumentEnvironment { pythoncode* } { O{} }
+  {
+    \__latexpro_env_begin:nnn { \c__latexpro_python_env_file_str }
+      { \c_true_bool } {#1}
+  }
+  { \__latexpro_env_end:N \__latexpro_python_env_run:Nn }
 \ExplSyntaxOff
 % \py{code} or \py|code| for a short piece of Python inside a sentence
 \NewDocumentCommand\py{v}{\lstinline[style=latexpro-python-inline]{#1}}
@@ -504,15 +555,8 @@
 \cs_new_protected:Npn \__latexpro_pseudo_input:Nnnn #1#2#3#4
   {
     \__latexpro_pseudo_prepare:n {#3}
-    \__latexpro_code_begin:nnnn { Pseudocode } #1 {#2} {#4}
-    \__latexpro_code_harvest:n { \c__latexpro_pseudo_file_str }
-    \use:e
-      {
-        \exp_not:N \lstinputlisting
-          [ style = latexpro-pseudo , \exp_not:V \l__latexpro_code_lst_clist ]
-      }
+    \__latexpro_code_box:nNnnnn { Pseudocode } #1 {#2} {#4} { latexpro-pseudo }
       { \c__latexpro_pseudo_file_str }
-    \__latexpro_code_end:
   }
 \NewDocumentCommand \__latexpro_pseudo_cmd: {s O{} m}
   {
@@ -520,40 +564,24 @@
     \__latexpro_pseudo_input:Nnnn \l_tmpa_bool {#2} {#3}
       { \__latexpro_code_file:n {#3} }
   }
-% \begin{pseudo}[options] ... \end{pseudo}: the body is written
-% verbatim to \jobname-pseudoenv.tmp and then handled like \pseudo; the
-% header shows only the caption (there is no file name).  pseudo* drops
-% the line numbers.
+% \begin{pseudo}[options] ... \end{pseudo}: the body is written verbatim to
+% \jobname-pseudoenv.tmp and then handled like \pseudo; the header shows only
+% the caption (there is no file name).  pseudo* drops the line numbers.
 \str_const:Ne \c__latexpro_pseudoenv_file_str { \c_sys_jobname_str -pseudoenv.tmp }
-\bool_new:N \l__latexpro_pseudoenv_star_bool
-\tl_new:N \l__latexpro_pseudoenv_opts_tl
-\cs_new_protected:Npn \__latexpro_pseudoenv_begin:nn #1#2
+\cs_new_protected:Npn \__latexpro_pseudoenv_run:Nn #1#2
+  { \__latexpro_pseudo_input:Nnnn #1 {#2} { \c__latexpro_pseudoenv_file_str } { } }
+\NewDocumentCommand \__latexpro_pseudoenv: { O{} }
   {
-    \bool_set:Nn \l__latexpro_pseudoenv_star_bool {#1}
-    \tl_set:Nn \l__latexpro_pseudoenv_opts_tl {#2}
-    \exp_args:NV \tcbverbatimwrite \c__latexpro_pseudoenv_file_str
+    \__latexpro_env_begin:nnn { \c__latexpro_pseudoenv_file_str }
+      { \c_false_bool } {#1}
+  }
+\NewDocumentCommand \__latexpro_pseudoenv_star: { O{} }
+  {
+    \__latexpro_env_begin:nnn { \c__latexpro_pseudoenv_file_str }
+      { \c_true_bool } {#1}
   }
 \cs_new_protected:Npn \__latexpro_pseudoenv_end:
-  {
-    \endtcbverbatimwrite
-    % typeset after the environment's group has ended: inside it the
-    % verbatim catcodes are still active and mathescape would print \gets
-    % literally instead of as maths
-    \hook_gput_next_code:ee { env / \@currenvir / after }
-      {
-        \exp_not:N \__latexpro_pseudo_input:Nnnn
-          \bool_if:NTF \l__latexpro_pseudoenv_star_bool
-            { \exp_not:N \c_true_bool } { \exp_not:N \c_false_bool }
-          { \exp_not:V \l__latexpro_pseudoenv_opts_tl }
-          { \c__latexpro_pseudoenv_file_str }
-          { }
-      }
-  }
-\cs_generate_variant:Nn \hook_gput_next_code:nn { ee }
-\NewDocumentCommand \__latexpro_pseudoenv: { O{} }
-  { \__latexpro_pseudoenv_begin:nn { \c_false_bool } {#1} }
-\NewDocumentCommand \__latexpro_pseudoenv_star: { O{} }
-  { \__latexpro_pseudoenv_begin:nn { \c_true_bool } {#1} }
+  { \__latexpro_env_end:N \__latexpro_pseudoenv_run:Nn }
 % \pseudo is both a command (\pseudo{file.txt}) and an environment
 % (\begin{pseudo} ... \end{pseudo}): \begin{pseudo} sets \@currenvir to
 % "pseudo" before it calls \pseudo, which then starts the environment.
