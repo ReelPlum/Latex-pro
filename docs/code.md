@@ -58,7 +58,8 @@ with GitHub-light colours, like a code block in an editor:
 **Long code.** A box that fits on a page is kept in one piece: if it does
 not fit at the bottom of the current page it moves to the next one. A box
 taller than a whole page breaks across as many pages as it needs (the header
-stays on the first part). `span` lets any box break, even a short one at the
+stays on the first part, and the edges where it is split are square and open,
+with no border). `span` lets any box break, even a short one at the
 bottom of a page: `\python[span]{f.py}`, `\pseudo[span]{algo.txt}`,
 `\begin{pythoncode}[span]`; `span=false` never breaks, even a box taller
 than a page. Nothing needs `-shell-escape`. Change the look after loading the package, e.g.
