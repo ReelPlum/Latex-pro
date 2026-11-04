@@ -32,7 +32,13 @@ for tex in "$root"/tests/test-*.tex "$root"/examples/*.tex; do
   [[ -n "$filter" && "$name" != *"$filter"* ]] && continue
   out="$build/$name"
   mkdir -p "$out"
-  if latexmk -cd -pdf -interaction=nonstopmode -halt-on-error -silent \
+  # a first line "% engine: xelatex" (or lualatex) picks the engine
+  engine="-pdf"
+  case "$(head -1 "$tex")" in
+    *"engine: xelatex"*) engine="-xelatex" ;;
+    *"engine: lualatex"*) engine="-lualatex" ;;
+  esac
+  if latexmk -cd $engine -interaction=nonstopmode -halt-on-error -silent \
        -outdir="$out" -jobname="$name" "$tex" >"$out/latexmk.out" 2>&1; then
     log="$out/$name.log"
     problems="$(grep -E 'LPTEST FAIL|LaTeX Warning: (Reference|There were undefined)|Undefined control sequence|Package latex-pro Warning' "$log")"

@@ -327,7 +327,7 @@ These go in `[opts]` of `\python`, `\pseudo`, `pythoncode` and `pseudo`.
 | `caption={text}` | text on the right of the header bar (replaces the file name) | file name (files), nothing (environments) |
 | `title={text}` | same as `caption` | |
 | `filename=false` | hide the file name in the header bar | `true` |
-| `span` | let the box break across pages, even a short one (split edges are square and open) | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
+| `span` | let the box break across pages, even a short one (split edges are wavy, with no border) | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
 | `span=false` | never break, even a box taller than a page | |
 | any `listings` option | passed on, e.g. `firstline=10`, `lastline=25`, `numbers=none`, `firstnumber=5` | |
 
@@ -617,7 +617,9 @@ the document for the ones marked "from here on").
 | `\latexprorefnumstyle` | look of the number in references (bold) | `\renewcommand\latexprorefnumstyle[1]{#1}` |
 | `\qrsetsize` | default QR code height, from here on | `\qrsetsize{3cm}` |
 | `\pseudoindentfalse` / `\pseudoindenttrue` | automatic pseudocode indentation, from here on | `\pseudoindentfalse` |
-| `\latexprocodefont` | font of all code | `\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}` |
+| `\latexprocodefont` | font of all code: JetBrains Mono with XeLaTeX/LuaLaTeX when it is installed or its `.ttf` files are next to the `.tex` file, otherwise `\ttfamily`; your own `\renewcommand` always wins | `\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}` |
+| `\latexprocodemath` | code font inside maths (used for `A_length` in pseudocode and `\variable{A_i}`) | `$\latexprocodemath{A}_{\latexprocodemath{length}}$` |
+| `\latexprowaveheight`, `\latexprowavelength` | height and period of the wavy edge where a code box is split | `\renewcommand\latexprowaveheight{2.5pt}` |
 | `\latexprofunctionfont` | extra font for function names (small caps) | `\renewcommand\latexprofunctionfont{}` (no small caps) |
 | `latexpro-code` box style | the tcolorbox of every code block | `\tcbset{latexpro-code/.append style={arc=0pt}}` (square corners) |
 | `latexpro-python`, `latexpro-pseudo` listings styles | the listings settings | `\lstdefinestyle{latexpro-python}{…}` |
@@ -628,6 +630,7 @@ preamble, e.g. `\definecolor{latexpro@keyword}{HTML}{D73A49}`:
 | Colour | Used for | Default |
 | --- | --- | --- |
 | `latexpro@codebg` | box and header background | `F6F8FA` |
+| `latexpro@pagebg` | page colour, used to cut the wavy split edge (change it on coloured paper) | `white` |
 | `latexpro@codeframe` | box frame | `D0D7DE` |
 | `latexpro@header` | language name in the header | `24292F` |
 | `latexpro@headerinfo` | caption / file name in the header | `57606A` |

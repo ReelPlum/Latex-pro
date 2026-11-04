@@ -34,9 +34,14 @@
 %   Restyle with \lstdefinestyle{latexpro-python}{...} (or latexpro-pseudo).
 %
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
-\ProvidesPackage{latex-pro-code}[2026/11/04 v0.5 latex-pro: code listings]
+\ProvidesPackage{latex-pro-code}[2026/11/04 v0.6 latex-pro: code listings]
 
 \RequirePackage{listings}
+\RequirePackage{amstext}
+% \latexprocodemath{length}: text in the code font inside maths, at the right
+% size for sub- and superscripts. Pseudocode subscripts (A_length) and
+% \variable{A_i} use it, so every variable has the same font.
+\newcommand\latexprocodemath[1]{\text{\latexprocodefont #1}}
 
 % ---------------------------------------------------------------------------
 % Look: IDE-style boxes (light mode)
@@ -48,6 +53,82 @@
 % \renewcommand\latexprocodefont{\ttfamily}, the box with
 % \tcbset{latexpro-code/.append style={...}}.
 \newcommand\latexprocodefont{\ttfamily}
+% JetBrains Mono: with XeLaTeX or LuaLaTeX the code font is JetBrains Mono
+% when it can be found, either installed on the computer or as the files
+% JetBrainsMono-Regular.ttf (-Bold, -Italic, -BoldItalic) next to the .tex
+% file (on Overleaf: upload them and pick XeLaTeX or LuaLaTeX). pdflatex
+% cannot use it and keeps \ttfamily. A \renewcommand\latexprocodefont of your
+% own is always kept. JetBrains Mono has no small caps, so function names use
+% Latin Modern Mono Caps for those.
+\let\latexpro@defaultcodefont\latexprocodefont
+\ExplSyntaxOn
+\tl_new:N \l__latexpro_code_sc_tl
+\cs_new_protected:Npn \__latexpro_code_jetbrains:
+  {
+    \cs_if_eq:NNT \latexprocodefont \latexpro@defaultcodefont
+      {
+        \bool_lazy_or:nnTF { \sys_if_engine_xetex_p: } { \sys_if_engine_luatex_p: }
+          {
+            \@ifpackageloaded { fontspec } { } { \RequirePackage { fontspec } }
+            % small caps for function names, from Latin Modern Mono Caps
+            \tl_clear:N \l__latexpro_code_sc_tl
+            \fontspec_font_if_exist:nTF { Latin~Modern~Mono~Caps }
+              {
+                \tl_set:Nn \l__latexpro_code_sc_tl
+                  {
+                    SmallCapsFont = { Latin~Modern~Mono~Caps } ,
+                    SmallCapsFeatures = { Extension = { } , Scale = MatchLowercase } ,
+                  }
+              }
+              {
+                \fontspec_font_if_exist:nT { lmmonocaps10-regular.otf }
+                  {
+                    \tl_set:Nn \l__latexpro_code_sc_tl
+                      {
+                        SmallCapsFont = { lmmonocaps10-regular.otf } ,
+                        SmallCapsFeatures = { Extension = { } , Scale = MatchLowercase } ,
+                      }
+                  }
+              }
+            \fontspec_font_if_exist:nTF { JetBrains~Mono }
+              {
+                \use:e
+                  {
+                    \exp_not:N \newfontfamily \exp_not:N \latexpro@jetbrains
+                      { JetBrains~Mono }
+                      [ Scale = MatchLowercase , \exp_not:V \l__latexpro_code_sc_tl ]
+                  }
+              }
+              {
+                \fontspec_font_if_exist:nTF { JetBrainsMono-Regular.ttf }
+                  {
+                    \use:e
+                      {
+                        \exp_not:N \newfontfamily \exp_not:N \latexpro@jetbrains
+                          { JetBrainsMono }
+                          [ Extension = .ttf ,
+                            UprightFont = *-Regular , BoldFont = *-Bold ,
+                            ItalicFont = *-Italic , BoldItalicFont = *-BoldItalic ,
+                            Scale = MatchLowercase ,
+                            \exp_not:V \l__latexpro_code_sc_tl ]
+                      }
+                  }
+                  {
+                    \PackageInfo { latex-pro-code }
+                      { JetBrains~Mono~not~found:~code~uses~\string\ttfamily }
+                  }
+              }
+            \cs_if_exist:NT \latexpro@jetbrains
+              { \cs_set_eq:NN \latexprocodefont \latexpro@jetbrains }
+          }
+          {
+            \PackageInfo { latex-pro-code }
+              { JetBrains~Mono~needs~XeLaTeX~or~LuaLaTeX:~code~uses~\string\ttfamily }
+          }
+      }
+  }
+\ExplSyntaxOff
+\AddToHook{begindocument/before}[latexpro/jetbrains]{\csname __latexpro_code_jetbrains:\endcsname}
 % function / method names (merge in "function merge(A, B)", newton in
 % "def newton(x)" and wherever they are called) are set in small caps, like
 % \textsc{merge}; \renewcommand\latexprofunctionfont{} turns that off.
@@ -89,21 +170,48 @@
     left=10pt, right=10pt, top=4pt, bottom=6pt,
     lefttitle=10pt, righttitle=10pt, toptitle=3pt, bottomtitle=3pt,
     before skip=\medskipamount, after skip=\medskipamount,
-    % a box split over pages: square corners and no border on the edges
-    % where it is split (the jigsaw skin draws only the outer edges)
+    % a box split over pages: the split edges are square, have no border
+    % (the jigsaw skin draws only the outer edges) and are cut in a wave
     enhanced jigsaw,
-    extras first={sharp corners=south},
-    extras middle={sharp corners},
-    extras last={sharp corners=north}}}%
+    extras first={sharp corners=south, overlay={\latexpro@wave{south}{1}}},
+    extras middle={sharp corners,
+      overlay={\latexpro@wave{south}{1}\latexpro@wave{north}{-1}}},
+    extras last={sharp corners=north, overlay={\latexpro@wave{north}{-1}}}}}%
+  \providecolor{latexpro@pagebg}{named}{white}%
 }
+% \latexpro@wave{south}{1} / {north}{-1}: cut that edge of a box part in a wave, by
+% covering everything beyond the wave in the page colour (latexpro@pagebg).
+% \latexprowaveheight is the height of the wave, \latexprowavelength one
+% period of it.
+\newcommand\latexprowaveheight{1.8pt}
+\newcommand\latexprowavelength{14pt}
+\newcommand\latexpro@wave[2]{%
+  \tcbsetmacrotowidthofnode\latexpro@wavew{frame}%
+  \pgfmathsetmacro\latexpro@wavewn{\latexpro@wavew}%
+  \pgfmathsetmacro\latexpro@waveh{\latexprowaveheight}%
+  \pgfmathsetmacro\latexpro@wavel{\latexprowavelength}%
+  % the wave runs 2 heights in from the edge; #2 = 1 for south, -1 for north
+  \def\latexpro@waves{#2}%
+  \fill[latexpro@pagebg]
+    ([yshift=\latexpro@waves*2*\latexpro@waveh pt]frame.#1 west)
+    -- plot[domain=0:\latexpro@wavewn, samples=\latexpro@wavewn/2, variable=\t]
+       ([xshift=\t pt,
+         yshift={\latexpro@waves*(2*\latexpro@waveh+\latexpro@waveh*sin(\t/\latexpro@wavel*360))*1pt}]frame.#1 west)
+    -- ([yshift=-\latexpro@waves*1pt]frame.#1 east)
+    -- ([yshift=-\latexpro@waves*1pt]frame.#1 west) -- cycle;}
 % keywords and operators: listings also hands operators (otherkeywords such
 % as = - +) inside comments and strings to keywordstyle, so colour them only
 % in ordinary code (\lst@Pmode), never in a comment or a string
 \newcommand\latexpro@keywordcolor{%
   \ifnum\lst@mode=\lst@Pmode\color{latexpro@keyword}\fi}
+% the code font for listings: listings prints * - < > \ _ as plain
+% characters only when the font is \ttdefault (otherwise it uses centred or
+% maths symbols, which sit wrong in another monospace font such as JetBrains
+% Mono), so the code font is made \ttdefault inside each listing
+\newcommand\latexpro@listingfont{\latexprocodefont\edef\ttdefault{\f@family}}
 % the parts every code style shares
 \lstdefinestyle{latexpro-code}{
-  basicstyle=\latexprocodefont\small\color{latexpro@text},
+  basicstyle=\latexpro@listingfont\small\color{latexpro@text},
   identifierstyle=\latexpro@ident,
   keywordstyle=\latexpro@keywordcolor,
   keywordstyle=[2]\color{latexpro@builtin},
@@ -156,7 +264,7 @@
 }
 % \py{...}: same colours, no line numbers
 \lstdefinestyle{latexpro-python-inline}{
-  style=latexpro-python, numbers=none, basicstyle=\latexprocodefont\color{latexpro@text}}
+  style=latexpro-python, numbers=none, basicstyle=\latexpro@listingfont\color{latexpro@text}}
 
 \ExplSyntaxOn
 % [caption=..] / [title=..] go in the header bar, every other option to listings
@@ -474,11 +582,15 @@
   }
 \cs_new_protected:Npn \__latexpro_pseudo_math_part:N #1
   {
-        \regex_replace_all:nnN
-          { \b ([A-Za-z] _ (?: \{[^\}]*\} | [A-Za-z0-9]+ )) } { \$ \1 \$ } #1
+        % TeX commands (\geq, \alpha_i) first, so the \latexprocodemath
+        % added below is not wrapped again
         \regex_replace_all:nnN
           { (\\[A-Za-z]+ (?: \s* [_^] (?: \{[^\}]*\} | \\[A-Za-z]+ | \w ) )* ) }
           { \$ \1 \$ } #1
+        % A_i, A_length, a_{n+1}: maths, with the letters in the code font
+        \regex_replace_all:nnN
+          { \b ([A-Za-z]) _ (?: \{([^\}]*)\} | ([A-Za-z0-9]+) ) }
+          { \$ \\latexprocodemath\{\1\} _ \{ \\latexprocodemath\{\2\3\} \} \$ } #1
         \regex_replace_all:nnN { <= } { \$\\leq\$ } #1
         \regex_replace_all:nnN { >= } { \$\\geq\$ } #1
         \regex_replace_all:nnN { != } { \$\\neq\$ } #1
@@ -613,7 +725,14 @@
 \NewDocumentCommand \variable { m }
   {
     \regex_match:nnTF { \c[DU]. } {#1}
-      { \ensuremath {#1} }
+      {
+        % letters and digits (A, length, n, 1) in the code font, the rest
+        % (_ ^ + \alpha ...) as maths
+        \tl_set:Nn \l_tmpa_tl {#1}
+        \regex_replace_all:nnN { ([A-Za-z0-9]+) }
+          { \cB\{ \c{latexprocodemath} \cB\{ \1 \cE\} \cE\} } \l_tmpa_tl
+        { \color{latexpro@text} \ensuremath { \l_tmpa_tl } }
+      }
       { { \latexprocodefont \color{latexpro@text} #1 } }
   }
 \ExplSyntaxOff
