@@ -3,8 +3,8 @@ function search(A, x)
     hi $\gets$ n
     while lo $\leq$ hi do
         m $\gets$ (lo + hi) ${\color{latexpro@keyword}/}$ 2
-        if $A_m$ = x then return m
-        if $A_m$ $<$ x then
+        if $\latexprocodemath{A}_{\latexprocodemath{m}}$ = x then return m
+        if $\latexprocodemath{A}_{\latexprocodemath{m}}$ $<$ x then
             lo $\gets$ m + 1
         else
             hi $\gets$ m - 1
@@ -14,7 +14,7 @@ function search(A, x)
         i $\gets$ i + 1
     until i $\geq$ n
     for i in range(n):
-        s $\gets$ s + $a_{i+1}$
+        s $\gets$ s + $\latexprocodemath{a}_{\latexprocodemath{i+1}}$
     done
     if (x $\neq$ y) {
         return x $\cdot$ $\alpha_i$

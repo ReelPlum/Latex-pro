@@ -57,6 +57,11 @@ y
 end if
 \end{pseudo*}
 \lpsamefile{pseudo* environment}{\pseudotmp}{code/env-star-expected.txt}
+% subscripts in pseudocode keep the code font: A_length, a_{n+1}
+\begin{pseudo*}
+x <- A_length + a_{n+1}
+\end{pseudo*}
+\lpsamefile{pseudo subscripts keep the code font}{\pseudotmp}{code/subscript-expected.txt}
 \begin{pseudocode}
 if x then
 y
@@ -83,10 +88,16 @@ end if
 Text with \variable{lo}, \variable{A_i} and \variable{a_{n+1}^2}.
 \lpsametext{variable is in the code font and text colour}
   {\variable{lo}}{{\latexprocodefont\color{latexpro@text}lo}}
-\lpsametext{variable with a subscript is set as maths}
-  {\variable{A_i}}{$A_i$}
-\lpsametext{variable with braces and superscript is set as maths}
-  {\variable{a_{n+1}^2}}{$a_{n+1}^2$}
+% a subscript is set as maths, but letters and digits keep the code font
+% (reported: A_length came out in maths italic)
+\lpsametext{variable with a subscript keeps the code font}
+  {\variable{A_i}}{$\latexprocodemath{A}_{\latexprocodemath{i}}$}
+\lpsametext{variable with a word as subscript keeps the code font}
+  {\variable{A_{length}}}{$\latexprocodemath{A}_{\latexprocodemath{length}}$}
+\lptrue{variable subscript is not maths italic}
+  {\sbox0{\variable{A_{length}}}\sbox2{$A_{length}$}\ifnum\numexpr\ifdim\wd0=\wd2 0\else 1\fi\relax=1 }
+\lpsametext{variable with braces and superscript}
+  {\variable{a_{n+1}^2}}{$\latexprocodemath{a}_{\latexprocodemath{n}+\latexprocodemath{1}}^{\latexprocodemath{2}}$}
 \lptrue{variable is not in small caps (unlike method)}
   {\sbox0{\variable{merge}}\sbox2{\method{merge}}\ifdim\ht0<\ht2 }
 
@@ -126,6 +137,13 @@ Text with \method{merge} in it.
 \lptrue{operators inside a Python comment are not coloured}{\ifnum\lpsawkw=0 }
 \lpcomments{latexpro-python}{s = 1}
 \lptrue{operators in Python code are coloured}{\ifnum\lpsawkw=1 }
+
+% pdflatex cannot load JetBrains Mono: the code font stays \ttfamily
+\makeatletter
+\lptrue{pdflatex keeps ttfamily as the code font}{\ifx\latexprocodefont\latexpro@defaultcodefont}
+\makeatother
+\lpdefined{wave height}{\latexprowaveheight}
+\lpdefined{wave length}{\latexprowavelength}
 
 % filename=false hides the file name in the header bar
 \python[filename=false]{code/sample.py}

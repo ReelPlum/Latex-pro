@@ -42,6 +42,14 @@ name (works for `\python` and `\pseudo`): `\pseudo[filename=false]{algo.txt}`.
 
 ### Look
 
+**Font.** With XeLaTeX or LuaLaTeX the code is set in **JetBrains Mono**
+when it can be found: installed on the computer, or the files
+`JetBrainsMono-Regular.ttf`, `-Bold.ttf`, `-Italic.ttf`, `-BoldItalic.ttf`
+next to your `.tex` file (on Overleaf: upload them and set the compiler to
+XeLaTeX or LuaLaTeX). pdflatex cannot load it and keeps the usual typewriter
+font. Function names use Latin Modern Mono Caps for the small caps, since
+JetBrains Mono has none.
+
 Every block is a rounded light-grey box with a header bar naming the
 language (*Python* / *Pseudocode*) and a rule under it, in a monospace font
 with GitHub-light colours, like a code block in an editor:
@@ -58,7 +66,7 @@ with GitHub-light colours, like a code block in an editor:
 **Long code.** A box that fits on a page is kept in one piece: if it does
 not fit at the bottom of the current page it moves to the next one. A box
 taller than a whole page breaks across as many pages as it needs (the header
-stays on the first part, and the edges where it is split are square and open,
+stays on the first part, and the edges where it is split are cut in a wave,
 with no border). `span` lets any box break, even a short one at the
 bottom of a page: `\python[span]{f.py}`, `\pseudo[span]{algo.txt}`,
 `\begin{pythoncode}[span]`; `span=false` never breaks, even a box taller
@@ -68,7 +76,7 @@ than a page. Nothing needs `-shell-escape`. Change the look after loading the pa
 \definecolor{latexpro@keyword}{HTML}{D73A49}   % other colours: latexpro@function,
                                                % @builtin, @constant, @string,
                                                % @comment, @codebg, @codeframe
-\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}
+\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}   % another code font
 \tcbset{latexpro-code/.append style={arc=0pt}}  % square corners
 \renewcommand\latexprofunctionfont{}           % function names without small caps
 ```
