@@ -85,11 +85,16 @@
     lefttitle=10pt, righttitle=10pt, toptitle=3pt, bottomtitle=3pt,
     before skip=\medskipamount, after skip=\medskipamount}}%
 }
+% keywords and operators: listings also hands operators (otherkeywords such
+% as = - +) inside comments and strings to keywordstyle, so colour them only
+% in ordinary code (\lst@Pmode), never in a comment or a string
+\newcommand\latexpro@keywordcolor{%
+  \ifnum\lst@mode=\lst@Pmode\color{latexpro@keyword}\fi}
 % the parts every code style shares
 \lstdefinestyle{latexpro-code}{
   basicstyle=\latexprocodefont\small\color{latexpro@text},
   identifierstyle=\latexpro@ident,
-  keywordstyle=\color{latexpro@keyword},
+  keywordstyle=\latexpro@keywordcolor,
   keywordstyle=[2]\color{latexpro@builtin},
   keywordstyle=[3]\color{latexpro@constant},
   keywordstyle=[4]\color{latexpro@keyword}\latexpro@fnnext,
@@ -316,8 +321,10 @@
     elseif,elif,end,endif,endfor,endwhile,endfunction,endprocedure,for,
     foreach,each,to,downto,by,step,do,in,while,repeat,until,loop,break,
     continue,and,or,not,xor,let,var,of,from,begin,goto,switch,case,default},
-  % operators share the keyword colour
-  otherkeywords={:=,==,=,+,-,/,\%},
+  % operators share the keyword colour; "/" is coloured by the
+  % pre-processing instead (as an otherkeyword it would stop listings from
+  % seeing // and /* as the start of a comment)
+  otherkeywords={:=,==,=,+,-,\%},
   morekeywords=[2]{print,input,output,call,length,len,max,min,abs,swap},
   morekeywords=[3]{true,false,null,nil,none},
   % the name after these is coloured as a function name
@@ -378,10 +385,36 @@
 
 % maths in a line that has no $...$ of its own:
 %   a_i -> $a_i$,  \geq -> $\geq$,  <= >= != <- -> < > * -> symbols
+\str_new:N \l__latexpro_pseudo_code_str
+\str_new:N \l__latexpro_pseudo_comment_str
+\seq_new:N \l__latexpro_pseudo_parts_seq
 \cs_new_protected:Npn \__latexpro_pseudo_math:N #1
   {
     \str_if_in:NnF #1 { $ }
       {
+        % split off a // comment: the code part also gets its "/" coloured
+        \seq_set_split_keep_spaces:NnV \l__latexpro_pseudo_parts_seq { // } #1
+        \seq_pop_left:NN \l__latexpro_pseudo_parts_seq \l__latexpro_pseudo_code_str
+        \seq_if_empty:NTF \l__latexpro_pseudo_parts_seq
+          { \str_clear:N \l__latexpro_pseudo_comment_str }
+          {
+            \str_set:Ne \l__latexpro_pseudo_comment_str
+              { // \seq_use:Nn \l__latexpro_pseudo_parts_seq { // } }
+          }
+        % keep /* and */ away (a lone "/" is division: keyword colour) from the "*" and "/" replacements
+        \regex_replace_all:nnN { /\* } { @@latexpro@open@@ } \l__latexpro_pseudo_code_str
+        \regex_replace_all:nnN { \*/ } { @@latexpro@close@@ } \l__latexpro_pseudo_code_str
+        \__latexpro_pseudo_math_part:N \l__latexpro_pseudo_code_str
+        \regex_replace_all:nnN { / }
+          { \$ \{ \\color \{ latexpro@keyword \} / \} \$ } \l__latexpro_pseudo_code_str
+        \regex_replace_all:nnN { @@latexpro@open@@ } { /* } \l__latexpro_pseudo_code_str
+        \regex_replace_all:nnN { @@latexpro@close@@ } { */ } \l__latexpro_pseudo_code_str
+        \__latexpro_pseudo_math_part:N \l__latexpro_pseudo_comment_str
+        \str_set:Ne #1 { \l__latexpro_pseudo_code_str \l__latexpro_pseudo_comment_str }
+      }
+  }
+\cs_new_protected:Npn \__latexpro_pseudo_math_part:N #1
+  {
         \regex_replace_all:nnN
           { \b ([A-Za-z] _ (?: \{[^\}]*\} | [A-Za-z0-9]+ )) } { \$ \1 \$ } #1
         \regex_replace_all:nnN
@@ -394,7 +427,6 @@
         \regex_replace_all:nnN { -> } { \$\\to\$ } #1
         \regex_replace_all:nnN { ([<>]) } { \$\1\$ } #1
         \regex_replace_all:nnN { \* } { \$\\cdot\$ } #1
-      }
   }
 \cs_new_protected:Npn \__latexpro_pseudo_line:n #1
   {

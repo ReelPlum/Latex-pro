@@ -388,8 +388,11 @@ Options: [see above](#options-for-code-blocks). What it does with the text:
 - **Keywords** are highlighted (case-insensitive): `function procedure
   algorithm return if then else elseif end for foreach each to downto by
   step do in while repeat until loop break continue and or not true false
-  null print input output let call begin …`. `// …` and `/* … */` are
-  comments.
+  null print input output let call begin …`.
+- **Comments:** `// …` (to the end of the line, also after code, e.g.
+  `return x // done`) and `/* … */` are grey italic comments. Keywords and
+  operators inside a comment are not coloured; maths such as `a <= b` or
+  `\alpha` still becomes symbols.
 - **Maths:** TeX commands (`\geq`, `\gets`, `\alpha_i^2`) become symbols;
   `<=` `>=` `!=` `<-` `->` `<` `>` `*` become ≤ ≥ ≠ ← → < > ·; `a_i`,
   `a_{n+1}` are set as maths. A line containing `$…$` is left exactly as
