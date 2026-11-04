@@ -36,7 +36,7 @@ its own, e.g. `\usepackage{latex-pro-matrix}`.
 | --- | --- | --- |
 | `latex-pro-matrix` | `\mat` `\bmat` `\pmat` `\usematb` `\usematp` `\idmat` `\colvec` `\rowvec` `\genmat` `\symmat` `\diagmat` | [docs/matrix.md](docs/matrix.md) |
 | `latex-pro-calculus` | `\partialdiff` `\diff` `\hessian` `\gradient` `\jacobian` | [docs/calculus.md](docs/calculus.md) |
-| `latex-pro-code` | `\python` `\py` `pythoncode` `\pseudo` `pseudo` `\method` (Python and pseudocode listings) | [docs/code.md](docs/code.md) |
+| `latex-pro-code` | `\python` `\py` `pythoncode` `\pseudo` `pseudo` `\method` `\variable` (Python and pseudocode listings) | [docs/code.md](docs/code.md) |
 | `latex-pro-links` | `\qr` `\qr*` `\qrsetsize` (QR code of a pasted link) | [docs/links.md](docs/links.md) |
 | `latex-pro-theorems` | theorem, proposition, lemma, … environments, `\proposition{label}` references, `\booksection` `\bookchapter` `\bookeq` | [docs/theorems.md](docs/theorems.md) |
 | `latex-pro-sets` | `\N` `\Z` `\Q` `\R` `\set` `\setof` `\ball` `\dist` `\interior` `\bd` `\Rx` | [docs/sets.md](docs/sets.md) |

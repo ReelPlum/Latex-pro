@@ -18,6 +18,8 @@
 %   \py{x = 1}                     short inline Python inside a sentence
 %   \method{merge}                 a function name in the text, styled like
 %                                  function names in the code blocks
+%   \variable{lo}  \variable{A_i}  a variable in the text, written as in a
+%                                  pseudocode block
 %   \pseudo{algo.txt}              include a pseudocode .txt file: keywords
 %                                  (if/then/else/for/while/repeat/return/end
 %                                  ...) highlighted, \geq \leq \gets <= != ... as
@@ -599,6 +601,15 @@
 \cs_new_eq:NN \endpseudocode \__latexpro_pseudoenv_end:
 \cs_new_eq:cc { pseudocode* } { pseudo* }
 \cs_new_eq:cc { endpseudocode* } { endpseudo* }
+% \variable{lo}: a variable in running text, written as in a pseudocode
+% block: the code font and text colour; with a subscript or superscript
+% (\variable{A_i}, \variable{a_{n+1}}) it is set as maths, as \pseudo does
+\NewDocumentCommand \variable { m }
+  {
+    \regex_match:nnTF { \c[DU]. } {#1}
+      { \ensuremath {#1} }
+      { { \latexprocodefont \color{latexpro@text} #1 } }
+  }
 \ExplSyntaxOff
 
 \endinput

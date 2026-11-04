@@ -78,6 +78,18 @@ end if
 \lptrue{name after def/function uses the function style}{\ifx\latexpro@ident\lpidentexpected}
 \makeatother
 
+% \variable{name}: a variable in running text, as in a pseudocode block
+\lpdefined{variable}{\variable}
+Text with \variable{lo}, \variable{A_i} and \variable{a_{n+1}^2}.
+\lpsametext{variable is in the code font and text colour}
+  {\variable{lo}}{{\latexprocodefont\color{latexpro@text}lo}}
+\lpsametext{variable with a subscript is set as maths}
+  {\variable{A_i}}{$A_i$}
+\lpsametext{variable with braces and superscript is set as maths}
+  {\variable{a_{n+1}^2}}{$a_{n+1}^2$}
+\lptrue{variable is not in small caps (unlike method)}
+  {\sbox0{\variable{merge}}\sbox2{\method{merge}}\ifdim\ht0<\ht2 }
+
 % \method{name}: a function name in running text, styled as in the code
 \lpdefined{method}{\method}
 Text with \method{merge} in it.

@@ -28,6 +28,7 @@ end function
 | `\begin{pythoncode} ... \end{pythoncode}` | Python typed straight into the `.tex` file, same look |
 | `\py{x = 1}` | a short piece of Python inline in a sentence |
 | `\method{merge}` | a function name in the text, in the same font, colour and small caps as function names in the code blocks |
+| `\variable{lo}` | a variable in the text, written as in a pseudocode block (`\variable{A_i}` is set as maths, like in `\pseudo`) |
 | `\pseudo[opts]{file.txt}` | a plain-text pseudocode file, highlighted and indented |
 | `\pseudo*{file.txt}` | the same without line numbers |
 | `\begin{pseudo} ... \end{pseudo}` | pseudocode typed straight into the `.tex` file, handled exactly like `\pseudo` (`pseudo*` drops the line numbers; `pseudocode` is the same environment) |

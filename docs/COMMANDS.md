@@ -86,6 +86,7 @@ Alphabetical. The link goes to the full entry.
 | `\mat{…}` | matrix in the current bracket style | [matrix](#bmat-pmat-mat) |
 | `\maximize{…}{…}` | max with stacked constraints | [notation](#minimize-and-maximize) |
 | `\method{name}` | function name in the text, styled like in code | [code](#method) |
+| `\variable{name}` | variable in the text, written as in pseudocode | [code](#variable) |
 | `\minimize{…}{…}` | min with stacked constraints | [notation](#minimize-and-maximize) |
 | `\N` `\Z` `\Q` `\R` | ℕ ℤ ℚ ℝ | [sets](#number-sets) |
 | `\norm{x}` | norm ‖x‖ | [notation](#abs-and-norm) |
@@ -378,6 +379,18 @@ colour and small caps as function names inside the code blocks.
 
 ```latex
 The procedure \method{merge} combines two sorted lists.
+```
+
+### `\variable`
+
+`\variable{name}`
+
+A variable in running text, written as in a pseudocode block: the
+monospace code font in the normal text colour. A name with a subscript or
+superscript (`A_i`, `a_{n+1}`) is set as maths, as `\pseudo` does.
+
+```latex
+The loop runs while \variable{lo} is at most \variable{hi}; \variable{A_i} is the $i$-th entry.
 ```
 
 ### `\pseudo` (file)
