@@ -239,6 +239,36 @@ Text with \method{merge} in it.
 \makeatother
 \lpdefined{wave height}{\latexprowaveheight}
 \lpdefined{wave length}{\latexprowavelength}
+% Regression: the wavy edges at a page break must fit together. The top
+% of a wave on the bottom edge of one part (where it bulges down the most)
+% is the bottom of a wave on the top edge of the next part, so the depth
+% of the south cut plus the depth of the north cut is the same (4 wave
+% heights) all along the edge. Before, both edges used the same wave and
+% bulged out at the same places.
+\makeatletter
+\def\latexpro@waveh{1.8}\def\latexpro@wavel{14}
+\newcommand\lpwavesum[1]{%
+  \pgfmathparse{\latexpro@wavedepth{1}{#1}+\latexpro@wavedepth{-1}{#1}}%
+  \pgfmathparse{abs(\pgfmathresult-7.2)<0.01}\ifnum\pgfmathresult=1 }
+\newcommand\lpwavedepth[3]{%
+  \pgfmathparse{abs(\latexpro@wavedepth{#1}{#2}-(#3))<0.01}\ifnum\pgfmathresult=1 }
+\lptrue{wave edges fit together at 0pt}{\lpwavesum{0}}
+\lptrue{wave edges fit together at 2pt}{\lpwavesum{2}}
+\lptrue{wave edges fit together at 3.5pt}{\lpwavesum{3.5}}
+\lptrue{wave edges fit together at 9pt}{\lpwavesum{9}}
+\lptrue{wave edges fit together at 10.5pt}{\lpwavesum{10.5}}
+\lptrue{wave edges fit together at 123.4pt}{\lpwavesum{123.4}}
+% a quarter period in: the bottom edge dips (cut 3h up), the top edge
+% reaches up (cut only h down), and three quarters in the other way round
+\lptrue{bottom edge dips where the top edge reaches up}{\lpwavedepth{1}{3.5}{5.4}}
+\lptrue{top edge reaches up where the bottom edge dips}{\lpwavedepth{-1}{3.5}{1.8}}
+\lptrue{bottom edge bulges where the top edge dips}{\lpwavedepth{1}{10.5}{1.8}}
+\lptrue{top edge dips where the bottom edge bulges}{\lpwavedepth{-1}{10.5}{5.4}}
+% both waves start in the middle (depth 2h) at the west side, so parts of
+% the same width line up
+\lptrue{bottom wave starts at depth 2h}{\lpwavedepth{1}{0}{3.6}}
+\lptrue{top wave starts at depth 2h}{\lpwavedepth{-1}{0}{3.6}}
+\makeatother
 
 % filename=false hides the file name in the header bar
 \python[filename=false]{code/sample.py}
