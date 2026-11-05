@@ -43,7 +43,10 @@ its own, e.g. `\usepackage{latex-pro-matrix}`.
 | `latex-pro-notation` | `\norm` `\abs` `\inner` `\tp` `\map` `\defeq` `\argmin` `\argmax` `\minimize` `\maximize` | [docs/notation.md](docs/notation.md) |
 
 Options of `latex-pro`: `square` / `round` (bracket style of the matrix
-commands) and `bysection` (theorems numbered 2.1, 2.2, …).
+commands), `bysection` (theorems numbered 2.1, 2.2, …) and `edge=<style>`
+(how code blocks look where a page break splits them: `wave` by default,
+or `zigzag`, `scallop`, `torn`, `fade`, `dashed`, `scissors`, `continued`,
+`straight`; see [split edge styles](docs/COMMANDS.md#split-edge-styles)).
 
 ## Examples and tests
 

@@ -22,6 +22,11 @@
 % Options (passed on to the module that uses them)
 %   square, round            bracket style of the matrix commands
 %   bysection                number theorems per section: 2.1, 2.2, ...
+%   edge=<style>             default look of a code block's edges where a
+%                            page break splits it: wave (default), zigzag,
+%                            scallop, torn, fade, dashed, scissors,
+%                            continued, straight
+%   length=x, ...            any other code block option, as a default
 %
 % Adding a module: create latex-pro-<topic>.sty and add one
 % \RequirePackage line below (keep the list in alphabetical order).
@@ -32,7 +37,14 @@
 \DeclareOption{round}{\PassOptionsToPackage{round}{latex-pro-matrix}}
 \DeclareOption{square}{\PassOptionsToPackage{square}{latex-pro-matrix}}
 \DeclareOption{bysection}{\PassOptionsToPackage{bysection}{latex-pro-theorems}}
-\DeclareOption*{\PackageWarning{latex-pro}{Unknown option `\CurrentOption'}}
+% options with an = (edge=torn, length=2) are code block options
+\DeclareOption*{%
+  \expandafter\in@\expandafter=\expandafter{\CurrentOption}%
+  \ifin@
+    \PassOptionsToPackage{\CurrentOption}{latex-pro-code}%
+  \else
+    \PackageWarning{latex-pro}{Unknown option `\CurrentOption'}%
+  \fi}
 \ProcessOptions\relax
 
 % Same load order of the AMS packages as before the split.
