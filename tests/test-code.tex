@@ -214,6 +214,25 @@ Text with \method{merge} in it.
 \lpsametext{variable subscript n-1 is still a subtraction}
   {\variable{a_{n-1}}}{$\latexprocodemath{a}_{\latexprocodemath{n}-\latexprocodemath{1}}$}
 
+% Regression: a pseudo block with no \end{pseudo} ran on into the next
+% block, and the "\begin{pseudo}[...]" line printed as code gave "Missing
+% \endcsname". Now it is a clear error ("is an \end{pseudo} missing?") and
+% the line is left out. The error is silenced here and counted instead.
+\ExplSyntaxOn
+\int_gzero:N \g_tmpa_int
+\msg_redirect_name:nnn { latex-pro-code } { nested-begin } { none }
+\cs_set_eq:NN \__test_orig_msg_error:nnVV \msg_error:nnVV
+\cs_set_protected:Npn \msg_error:nnVV #1#2#3#4
+  { \int_gincr:N \g_tmpa_int \__test_orig_msg_error:nnVV {#1} {#2} #3 #4 }
+\ExplSyntaxOff
+\pseudo{code/nested-begin.txt}
+\lpsamefile{a begin pseudo line inside a block is left out}{\pseudotmp}{code/nested-begin-expected.txt}
+\lptrue{a begin pseudo line inside a block is an error}{\ifnum\csname g_tmpa_int\endcsname=1 }
+\ExplSyntaxOn
+\cs_set_eq:NN \msg_error:nnVV \__test_orig_msg_error:nnVV
+\msg_redirect_name:nnn { latex-pro-code } { nested-begin } { }
+\ExplSyntaxOff
+
 % pdflatex cannot load JetBrains Mono: the code font stays \ttfamily
 \makeatletter
 \lptrue{pdflatex keeps ttfamily as the code font}{\ifx\latexprocodefont\latexpro@defaultcodefont}
