@@ -86,6 +86,7 @@ Alphabetical. The link goes to the full entry.
 | `\mat{…}` | matrix in the current bracket style | [matrix](#bmat-pmat-mat) |
 | `\maximize{…}{…}` | max with stacked constraints | [notation](#minimize-and-maximize) |
 | `\method{name}` | function name in the text, styled like in code | [code](#method) |
+| `\latexprohyphenname{name}` | a hyphenated name in pseudocode, printed in one piece (used by `\pseudo`) | [code](#pseudo-file) |
 | `\variable{name}` | variable in the text, written as in pseudocode | [code](#variable) |
 | `\minimize{…}{…}` | min with stacked constraints | [notation](#minimize-and-maximize) |
 | `\N` `\Z` `\Q` `\R` | ℕ ℤ ℚ ℝ | [sets](#number-sets) |
@@ -377,6 +378,7 @@ A short piece of Python inline in a sentence: `Call \py{len(xs)} first.`
 
 A function or method name in running text, in the same monospace font,
 colour and small caps as function names inside the code blocks.
+Hyphens are part of the name: `\method{ADD-building-to-SKYLINE}`.
 
 ```latex
 The procedure \method{merge} combines two sorted lists.
@@ -389,6 +391,9 @@ The procedure \method{merge} combines two sorted lists.
 A variable in running text, written as in a pseudocode block: the
 monospace code font in the normal text colour. A name with a subscript or
 superscript (`A_i`, `a_{n+1}`) is set as maths, as `\pseudo` does.
+Hyphens between letters are part of the name (`\variable{left-sum}`,
+`\variable{left-sum_i}`); in a subscript such as `a_{n-1}` the `-` before a
+digit is still a minus.
 
 ```latex
 The loop runs while \variable{lo} is at most \variable{hi}; \variable{A_i} is the $i$-th entry.
@@ -413,6 +418,14 @@ Options: [see above](#options-for-code-blocks). What it does with the text:
   `<=` `>=` `!=` `<-` `->` `<` `>` `*` become ≤ ≥ ≠ ← → < > ·; `a_i`,
   `a_{n+1}` are set as maths. A line containing `$…$` is left exactly as
   written.
+- **Names with hyphens:** a `-` between two letters joins one name, so
+  `ADD-building-to-SKYLINE` after `function` (or written as
+  `ADD-building-to-SKYLINE(`) is one function name in small caps, like
+  `\method{ADD-building-to-SKYLINE}`, and `skyline-with-one` is one variable.
+  A `-` before a digit or between spaces (`n-1`, `a - b`) is still a red
+  minus, so write `a - b` with spaces when you mean subtraction of two
+  variables. (Internally such a name is printed by
+  `\latexprohyphenname{name}`; you do not need to type it.)
 - **Automatic indentation:** write every line flush left. Lines after
   `function`/`procedure`/`repeat`/`else`, after a line ending in
   `then`/`do`/`:`/`{`, or a `for`/`foreach`/`while`/`if` header are

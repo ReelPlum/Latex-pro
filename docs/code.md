@@ -27,7 +27,7 @@ end function
 | `\python*{file.py}` | the same without line numbers |
 | `\begin{pythoncode} ... \end{pythoncode}` | Python typed straight into the `.tex` file, same look |
 | `\py{x = 1}` | a short piece of Python inline in a sentence |
-| `\method{merge}` | a function name in the text, in the same font, colour and small caps as function names in the code blocks |
+| `\method{merge}` | a function name in the text, in the same font, colour and small caps as function names in the code blocks (hyphens are fine: `\method{ADD-building-to-SKYLINE}`) |
 | `\variable{lo}` | a variable in the text, written as in a pseudocode block (`\variable{A_i}` is set as maths, like in `\pseudo`) |
 | `\pseudo[opts]{file.txt}` | a plain-text pseudocode file, highlighted and indented |
 | `\pseudo*{file.txt}` | the same without line numbers |
@@ -98,6 +98,11 @@ What `\pseudo` does with the file:
   `->`, `<`, `>` and `*` become ≤ ≥ ≠ ← → < > ·, and single-letter
   subscripts like `a_i` or `a_{n+1}` are set as maths. A line that already
   contains `$…$` is left exactly as written (your own maths).
+- **Names with hyphens.** A `-` between two letters joins one name:
+  `function ADD-building-to-SKYLINE(A, b)` gives one function name in small
+  caps (also wherever it is called), and `skyline-with-one` is one variable.
+  A `-` before a digit or between spaces (`n-1`, `a - b`) stays a red minus,
+  so put spaces around `-` when you subtract two variables.
 - **Automatic indentation.** You can write every line flush left. After a
   line starting with `function`/`procedure`/`repeat`/`else`, or ending in
   `then`/`do`/`:`/`{`, or a `for`/`foreach`/`while`/`if` header, the next

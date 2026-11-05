@@ -138,6 +138,82 @@ Text with \method{merge} in it.
 \lpcomments{latexpro-python}{s = 1}
 \lptrue{operators in Python code are coloured}{\ifnum\lpsawkw=1 }
 
+% names with hyphens. Regression: in ADD-building-to-SKYLINE the "-" were
+% operators, so only ADD and SKYLINE were function names (small caps) and
+% the "-" were red. A "-" between two letters now joins one name; n-1 and
+% a - b stay subtractions, and comments are left alone.
+\pseudo{code/hyphen.txt}
+\lpsamefile{pseudo keeps hyphenated names in one piece}{\pseudotmp}{code/hyphen-expected.txt}
+\ExplSyntaxOn
+\__latexpro_code_harvest_hyphen:n { code/hyphen.txt }
+\lptrue{hyphenated~function~names~are~found~(lower~case)}
+  { \str_if_eq:eeTF { \seq_use:Nn \l__latexpro_code_hyphen_names_seq { , } }
+      { add-building-to-skyline } { \iftrue } { \iffalse } }
+\bool_set_true:N \l__latexpro_code_hyphen_bool
+\__latexpro_code_harvest:n { code/hyphen.txt }
+\bool_set_false:N \l__latexpro_code_hyphen_bool
+\lptrue{hyphenated~parts~are~not~function~names~on~their~own}
+  { \str_if_eq:eeTF { \seq_use:Nn \l__latexpro_code_names_seq { , } }
+      { MERGE } { \iftrue } { \iffalse } }
+\ExplSyntaxOff
+% #1 code (a line of a pseudocode block, after \pseudo's pre-processing):
+% \lpsawfn is 1 when the function colour was used, \lpsawkw when the
+% keyword (operator) colour was
+\ExplSyntaxOn
+\iow_new:N \g__test_colours_iow
+\cs_new_protected:Npn \__test_colours_write:n #1
+  {
+    \iow_open:Nn \g__test_colours_iow { \c_sys_jobname_str -colours.tmp }
+    \iow_now:Ne \g__test_colours_iow { \tl_to_str:n {#1} }
+    \iow_close:N \g__test_colours_iow
+  }
+\NewDocumentCommand \lpcolours { +v }
+  {
+    \__test_colours_write:n {#1}
+    \group_begin:
+    \cs_set_eq:NN \lporigcolor \color
+    \cs_set_protected:Npn \color ##1
+      {
+        \str_if_eq:nnT {##1} { latexpro@keyword } { \gdef\lpsawkw{1} }
+        \str_if_eq:nnT {##1} { latexpro@function } { \gdef\lpsawfn{1} }
+        \lporigcolor {##1}
+      }
+    \gdef\lpsawkw{0} \gdef\lpsawfn{0}
+    \hbox_set:Nn \l_tmpa_box
+      { \lstinputlisting [ style = latexpro-pseudo ] { \c_sys_jobname_str -colours.tmp } }
+    \group_end:
+  }
+\ExplSyntaxOff
+\lpcolours{function $\mbox{\latexprohyphenname{add-to-sky}}$(x)}
+\lptrue{hyphenated name after function is a function name}{\ifnum\lpsawfn=1 }
+\lpcolours{$\mbox{\latexprohyphenname{left-part}}$}
+\lptrue{hyphenated variable is not a function name}{\ifnum\lpsawfn=0 }
+\lptrue{hyphens in a variable name are not operators}{\ifnum\lpsawkw=0 }
+\lpcolours{n-1}
+\lptrue{minus before a digit is still an operator}{\ifnum\lpsawkw=1 }
+\lpcolours{a - b}
+\lptrue{minus between spaces is still an operator}{\ifnum\lpsawkw=1 }
+\lpcolours{// function $\mbox{\latexprohyphenname{add-to-sky}}$}
+\lptrue{hyphenated name in a comment is not a function name}{\ifnum\lpsawfn=0 }
+\begingroup
+\ExplSyntaxOn
+\str_set:Nn \l_tmpa_str { add-to-sky }
+\seq_clear:N \l__latexpro_code_hyphen_names_seq
+\seq_put_right:NV \l__latexpro_code_hyphen_names_seq \l_tmpa_str
+\ExplSyntaxOff
+\lpcolours{x $\mbox{\latexprohyphenname{ADD-to-SKY}}$(1)}
+\endgroup
+\lptrue{a call of a hyphenated function is a function name}{\ifnum\lpsawfn=1 }
+\lptrue{hyphens in a function name are not operators}{\ifnum\lpsawkw=0 }
+\lpsametext{method with hyphens}
+  {\method{ADD-building-to-SKYLINE}}{{\latexprocodefont\color{latexpro@function}\scshape ADD-building-to-SKYLINE}}
+\lpsametext{variable with hyphens}
+  {\variable{left-sum}}{{\latexprocodefont\color{latexpro@text}left-sum}}
+\lpsametext{variable with hyphens and a subscript keeps one name}
+  {\variable{left-sum_i}}{$\latexprocodemath{left-sum}_{\latexprocodemath{i}}$}
+\lpsametext{variable subscript n-1 is still a subtraction}
+  {\variable{a_{n-1}}}{$\latexprocodemath{a}_{\latexprocodemath{n}-\latexprocodemath{1}}$}
+
 % pdflatex cannot load JetBrains Mono: the code font stays \ttfamily
 \makeatletter
 \lptrue{pdflatex keeps ttfamily as the code font}{\ifx\latexprocodefont\latexpro@defaultcodefont}

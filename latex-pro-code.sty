@@ -34,7 +34,7 @@
 %   Restyle with \lstdefinestyle{latexpro-python}{...} (or latexpro-pseudo).
 %
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
-\ProvidesPackage{latex-pro-code}[2026/11/04 v0.6 latex-pro: code listings]
+\ProvidesPackage{latex-pro-code}[2026/11/05 v0.7 latex-pro: code listings]
 
 \RequirePackage{listings}
 \RequirePackage{amstext}
@@ -330,6 +330,9 @@
       { \prg_return_true: } { \prg_return_false: }
   }
 \cs_generate_variant:Nn \__latexpro_code_reserved:nF { V }
+\cs_generate_variant:Nn \regex_extract_all:nnN { nV }
+\bool_new:N \l__latexpro_code_hyphen_bool
+\str_new:N \l__latexpro_code_line_str
 \cs_new_protected:Npn \__latexpro_code_harvest:n #1
   {
     \seq_clear:N \l__latexpro_code_names_seq
@@ -337,9 +340,18 @@
       {
         \ior_str_map_inline:Nn \g__latexpro_code_ior
           {
-            \regex_extract_all:nnN
+            \str_set:Nn \l__latexpro_code_line_str {##1}
+            % pseudocode: the parts of a hyphenated name (ADD and SKYLINE in
+            % function ADD-building-to-SKYLINE) are not names of their own
+            \bool_if:NT \l__latexpro_code_hyphen_bool
+              {
+                \regex_replace_all:nnN
+                  { [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ }
+                  { 0 } \l__latexpro_code_line_str
+              }
+            \regex_extract_all:nVN
               { (?: [A-Za-z_]\w* \s* \( ) | (?: (?:def|class|function|procedure|algorithm) \s+ [A-Za-z_]\w* ) }
-              {##1} \l__latexpro_code_found_seq
+              \l__latexpro_code_line_str \l__latexpro_code_found_seq
             \seq_map_inline:Nn \l__latexpro_code_found_seq
               {
                 \str_set:Nn \l__latexpro_code_name_str {####1}
@@ -356,10 +368,44 @@
           }
         \ior_close:N \g__latexpro_code_ior
       }
+    \__latexpro_code_harvest_hyphen:n {#1}
     \use:e
       {
         \exp_not:N \lstset
           { emph = { \seq_use:Nn \l__latexpro_code_names_seq { , } } }
+      }
+  }
+% Function names with hyphens (ADD-building-to-SKYLINE): listings reads "-"
+% as an operator, so these are collected on their own (lower-cased, as
+% pseudocode is not case-sensitive) and \pseudo prints them in one piece
+% (see \latexprohyphenname).
+\seq_new:N \l__latexpro_code_hyphen_names_seq
+\cs_new_protected:Npn \__latexpro_code_harvest_hyphen:n #1
+  {
+    \seq_clear:N \l__latexpro_code_hyphen_names_seq
+    \ior_open:NnT \g__latexpro_code_ior {#1}
+      {
+        \ior_str_map_inline:Nn \g__latexpro_code_ior
+          {
+            \regex_extract_all:nnN
+              {
+                (?: [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ \s* \( )
+                | (?: (?:def|class|function|procedure|algorithm) \s+
+                      [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ )
+              }
+              {##1} \l__latexpro_code_found_seq
+            \seq_map_inline:Nn \l__latexpro_code_found_seq
+              {
+                \str_set:Ne \l__latexpro_code_name_str { \str_foldcase:n {####1} }
+                \regex_replace_once:nnN { \s* \( \Z } { } \l__latexpro_code_name_str
+                \regex_replace_once:nnN
+                  { \A (?:def|class|function|procedure|algorithm) \s+ } { }
+                  \l__latexpro_code_name_str
+                \seq_if_in:NVF \l__latexpro_code_hyphen_names_seq \l__latexpro_code_name_str
+                  { \seq_put_right:NV \l__latexpro_code_hyphen_names_seq \l__latexpro_code_name_str }
+              }
+          }
+        \ior_close:N \g__latexpro_code_ior
       }
   }
 % #1 options, #2 text for the right of the header when there is no caption
@@ -395,6 +441,9 @@
       ]
     \bool_if:NT #2 { \lstset { numbers = none , xleftmargin = 0pt } }
     \global \latexpro@fnfalse
+    \str_if_eq:nnTF {#3} { latexpro-pseudo }
+      { \bool_set_true:N \l__latexpro_code_hyphen_bool }
+      { \bool_set_false:N \l__latexpro_code_hyphen_bool }
     \__latexpro_code_harvest:n {#4}
     \use:e
       {
@@ -584,6 +633,12 @@
         \regex_replace_all:nnN { /\* } { @@latexpro@open@@ } \l__latexpro_pseudo_code_str
         \regex_replace_all:nnN { \*/ } { @@latexpro@close@@ } \l__latexpro_pseudo_code_str
         \__latexpro_pseudo_math_part:N \l__latexpro_pseudo_code_str
+        % names with hyphens (ADD-building-to-SKYLINE, left-part) are one
+        % name, not a subtraction: a "-" between two letters joins them.
+        % A "-" before a digit or a space (n-1, a - b) stays an operator.
+        \regex_replace_all:nnN
+          { \b ([A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ ) }
+          { \$ \\mbox \{ \\latexprohyphenname \{ \1 \} \} \$ } \l__latexpro_pseudo_code_str
         \regex_replace_all:nnN { / }
           { \$ \{ \\color \{ latexpro@keyword \} / \} \$ } \l__latexpro_pseudo_code_str
         \regex_replace_all:nnN { @@latexpro@open@@ } { /* } \l__latexpro_pseudo_code_str
@@ -672,6 +727,33 @@
     \fi
   }
 
+% \latexprohyphenname{ADD-building-to-SKYLINE}: a name with hyphens in a
+% pseudocode block, printed in one piece. It is a function name (small caps,
+% function colour, like \method) when it follows function / procedure /
+% algorithm or is written name( somewhere in the block, otherwise a variable
+% (plain code text). Inside a comment or a string it is left as it is.
+% the $...$ of mathescape interrupts listings' modes and keeps them in
+% \lst@modestack: in plain code (not in a comment or a string) that holds
+% only the Pmode every listing starts in
+\tl_const:Nn \latexpro@plainmodes
+  { { \lst@EnterMode { \lst@Pmode } { \lst@SelectCharTable } } }
+\str_new:N \l__latexpro_hyphen_name_str
+\NewDocumentCommand \latexprohyphenname { m }
+  {
+    \tl_if_eq:NNTF \lst@modestack \latexpro@plainmodes
+      {
+        \str_set:Ne \l__latexpro_hyphen_name_str { \str_foldcase:n {#1} }
+        \legacy_if:nTF { latexpro@fn }
+          { \global \latexpro@fnfalse \latexpro@functionstyle }
+          {
+            \seq_if_in:NVT \l__latexpro_code_hyphen_names_seq
+              \l__latexpro_hyphen_name_str
+              { \latexpro@functionstyle }
+          }
+      }
+      { }
+    #1
+  }
 % write the re-indented copy of #1 to \jobname-pseudo.tmp
 \cs_new_protected:Npn \__latexpro_pseudo_prepare:n #1
   {
@@ -741,7 +823,9 @@
         % letters and digits (A, length, n, 1) in the code font, the rest
         % (_ ^ + \alpha ...) as maths
         \tl_set:Nn \l_tmpa_tl {#1}
-        \regex_replace_all:nnN { ([A-Za-z0-9]+) }
+        % a name with hyphens (left-sum) stays one name, its "-" a hyphen
+        \regex_replace_all:nnN
+          { ( [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ | [A-Za-z0-9]+ ) }
           { \cB\{ \c{latexprocodemath} \cB\{ \1 \cE\} \cE\} } \l_tmpa_tl
         { \color{latexpro@text} \ensuremath { \l_tmpa_tl } }
       }
