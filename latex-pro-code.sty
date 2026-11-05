@@ -185,10 +185,19 @@
 % (latexpro@pagebg). \latexprowaveheight is the height of the wave,
 % \latexprowavelength one period of it at length=1; the box option
 % length=x makes the period x times as long.
+%
+% The two edges of a page break fit together like puzzle pieces: where the
+% bottom edge of one part bulges down (a wave top on that edge), the top
+% edge of the next part dips down (a wave bottom), and the other way round.
+% \latexpro@wavedepth{s}{t} is how far in from the edge the cut lies, t pt
+% from the west side, for s = 1 (south) or -1 (north): 2h + s*h*sin, so the
+% depth of the south edge plus that of the north edge is always 4h.
 \newcommand\latexprowaveheight{1.8pt}
 \newcommand\latexprowavelength{14pt}
 \newcommand\latexpro@wavefactor{1}
 \newdimen\latexpro@wavedim
+\newcommand\latexpro@wavedepth[2]{%
+  (2*\latexpro@waveh+(#1)*\latexpro@waveh*sin((#2)/\latexpro@wavel*360))}
 \newcommand\latexpro@wave[2]{%
   % the width of the box, from its own west and east edges
   \pgfextractx\latexpro@wavedim{\pgfpointanchor{frame}{east}}%
@@ -197,15 +206,15 @@
   \pgfmathsetmacro\latexpro@wavewn{\latexpro@wavedim}%
   \pgfmathsetmacro\latexpro@waveh{\latexprowaveheight}%
   \pgfmathsetmacro\latexpro@wavel{\latexprowavelength*\latexpro@wavefactor}%
-  % the wave runs 2 heights in from the edge; #2 = 1 for south, -1 for north
+  % #2 = 1 for south (cut moves up from the edge), -1 for north (down)
   \def\latexpro@waves{#2}%
   \fill[latexpro@pagebg]
     ([xshift=-1pt, yshift=\latexpro@waves*2*\latexpro@waveh pt]frame.#1 west)
     -- plot[domain=0:\latexpro@wavewn, samples={max(2,\latexpro@wavewn/2)}, variable=\t]
        ([xshift=\t pt,
-         yshift={\latexpro@waves*(2*\latexpro@waveh+\latexpro@waveh*sin(\t/\latexpro@wavel*360))*1pt}]frame.#1 west)
+         yshift={\latexpro@waves*\latexpro@wavedepth{\latexpro@waves}{\t}*1pt}]frame.#1 west)
     -- ([xshift=1pt,
-         yshift={\latexpro@waves*(2*\latexpro@waveh+\latexpro@waveh*sin(\latexpro@wavewn/\latexpro@wavel*360))*1pt}]frame.#1 east)
+         yshift={\latexpro@waves*\latexpro@wavedepth{\latexpro@waves}{\latexpro@wavewn}*1pt}]frame.#1 east)
     -- ([xshift=1pt, yshift=-\latexpro@waves*1pt]frame.#1 east)
     -- ([xshift=-1pt, yshift=-\latexpro@waves*1pt]frame.#1 west) -- cycle;}
 % keywords and operators: listings also hands operators (otherkeywords such
