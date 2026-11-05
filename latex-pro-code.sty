@@ -666,7 +666,32 @@
         \regex_replace_all:nnN { ([<>]) } { \$\1\$ } #1
         \regex_replace_all:nnN { \* } { \$\\cdot\$ } #1
   }
+% A \begin{pseudo} / \begin{pythoncode} line inside a pseudocode block means
+% an \end{pseudo} is missing above it (the block runs on into the next one).
+% Printed as code it would give "Missing \endcsname", so stop with a clear
+% message instead and leave that line out.
+\msg_new:nnnn { latex-pro-code } { nested-begin }
+  { \iow_char:N \\begin{#1}~inside~a~pseudocode~block~(line~#2~of~the~block).~
+    Is~an~\iow_char:N \\end{pseudo}~missing~above~it? }
+  { Every~\iow_char:N \\begin{pseudo}~needs~its~own~\iow_char:N \\end{pseudo}.~
+    The~line~is~left~out. }
+\int_new:N \l__latexpro_pseudo_lineno_int
+\str_new:N \l__latexpro_pseudo_envname_str
 \cs_new_protected:Npn \__latexpro_pseudo_line:n #1
+  {
+    \int_incr:N \l__latexpro_pseudo_lineno_int
+    \regex_extract_once:nnNTF
+      { \\begin \s* \{ ( pseudo\*? | pseudocode\*? | pythoncode\*? ) \} }
+      {#1} \l_tmpa_seq
+      {
+        \str_set:Ne \l__latexpro_pseudo_envname_str { \seq_item:Nn \l_tmpa_seq { 2 } }
+        \msg_error:nnVV { latex-pro-code } { nested-begin }
+          \l__latexpro_pseudo_envname_str \l__latexpro_pseudo_lineno_int
+      }
+      { \__latexpro_pseudo_line_do:n {#1} }
+  }
+\cs_generate_variant:Nn \msg_error:nnnn { nnVV }
+\cs_new_protected:Npn \__latexpro_pseudo_line_do:n #1
   {
     \str_set:Nn \l__latexpro_line_str {#1}
     \ifpseudoindent
@@ -760,6 +785,7 @@
     \ior_open:Nn \g__latexpro_pseudo_ior {#1}
     \iow_open:Nn \g__latexpro_pseudo_iow { \c__latexpro_pseudo_file_str }
     \int_zero:N \l__latexpro_depth_int
+    \int_zero:N \l__latexpro_pseudo_lineno_int
     \ior_str_map_inline:Nn \g__latexpro_pseudo_ior
       { \__latexpro_pseudo_line:n {##1} }
     \iow_close:N \g__latexpro_pseudo_iow

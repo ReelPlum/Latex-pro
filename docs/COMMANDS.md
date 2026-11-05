@@ -445,6 +445,10 @@ Options: [see above](#options-for-code-blocks). What it does with the text:
 Pseudocode typed straight into the `.tex` file, handled exactly like
 `\pseudo{file}`. The starred forms drop the line numbers; `pseudocode` is
 another name for `pseudo`. The header only shows a `caption`.
+Every `\begin{pseudo}` needs its own `\end{pseudo}`. If one is missing,
+the block runs on into the next one, and the package stops with
+"\begin{pseudo} inside a pseudocode block … Is an \end{pseudo} missing
+above it?".
 
 ```latex
 \begin{pseudo}[caption={Merge buildings}]
