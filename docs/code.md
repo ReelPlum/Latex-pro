@@ -71,7 +71,13 @@ with no border; the side borders stop where the wave meets them). The wave at
 the bottom of one part and the wave at the top of the next fit together like
 puzzle pieces: where one bulges out, the other dips in. `length=x`
 makes the waves x times as long, e.g. `\python[length=3]{long.py}`
-(default `1`). `span` lets any box break, even a short one at the
+(default `1`). The wave is the default edge style; others are `zigzag`,
+`scallop`, `torn` (these also interlock), `fade`, `dashed`, `scissors`,
+`continued` (a *continued on next page* label) and `straight`. Choose the
+default at the top with `\usepackage[edge=zigzag]{latex-pro}` or
+`\latexprocodesetup{edge=zigzag}`, and for one box with
+`\python[edge=torn]{long.py}`. See
+[split edge styles](COMMANDS.md#split-edge-styles) for a picture of each. `span` lets any box break, even a short one at the
 bottom of a page: `\python[span]{f.py}`, `\pseudo[span]{algo.txt}`,
 `\begin{pythoncode}[span]`; `span=false` never breaks, even a box taller
 than a page. Nothing needs `-shell-escape`. Change the look after loading the package, e.g.

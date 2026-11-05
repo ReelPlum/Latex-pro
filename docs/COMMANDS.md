@@ -41,10 +41,12 @@ always means "use the default".
 | `round` | matrix commands use round brackets ( ) | ✓ |
 | `square` | matrix commands use square brackets [ ] | |
 | `bysection` | theorems are numbered per section: 2.1, 2.2, … | off (1, 2, 3, …) |
+| `edge=style` | default [edge style](#split-edge-styles) of code blocks split by a page break | `wave` |
+| any other code block option with `=` | a default for every code block, e.g. `length=2` (see [`\latexprocodesetup`](#latexprocodesetup)) | |
 
 Every module can be loaded on its own: `latex-pro-matrix` (accepts
 `square`/`round`), `latex-pro-calculus` (also loads `latex-pro-matrix`),
-`latex-pro-code`, `latex-pro-links`, `latex-pro-theorems` (accepts
+`latex-pro-code` (accepts `edge=…` and the other code block options), `latex-pro-links`, `latex-pro-theorems` (accepts
 `bysection`), `latex-pro-sets`, `latex-pro-notation`. See the
 [README](../README.md#install) for installing the files once for every
 project.
@@ -82,6 +84,7 @@ Alphabetical. The link goes to the full entry.
 | `\interior{S}` | interior S° | [sets](#ball-dist-interior-bd) |
 | `\jacobian[x][f][v]{m}{n}` | derivative (Jacobian) matrix | [calculus](#jacobian) |
 | `lemma` | theorem-like environment / reference | [theorems](#theorem-environments) |
+| `\latexprocodesetup{edge=…}` | default options of code blocks, e.g. the split edge style | [code](#latexprocodesetup) |
 | `\map{f}{S}{T}` | f : S → T | [notation](#small-symbols-tp-defeq-map) |
 | `\mat{…}` | matrix in the current bracket style | [matrix](#bmat-pmat-mat) |
 | `\maximize{…}{…}` | max with stacked constraints | [notation](#minimize-and-maximize) |
@@ -328,15 +331,73 @@ These go in `[opts]` of `\python`, `\pseudo`, `pythoncode` and `pseudo`.
 | `caption={text}` | text on the right of the header bar (replaces the file name) | file name (files), nothing (environments) |
 | `title={text}` | same as `caption` | |
 | `filename=false` | hide the file name in the header bar | `true` |
-| `span` | let the box break across pages, even a short one (split edges are wavy, with no border, and the two edges at a page break fit together) | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
+| `span` | let the box break across pages, even a short one (split edges are drawn in the box's edge style, wave by default) | `auto`: kept in one piece unless it is taller than a page, then it breaks across pages |
 | `span=false` | never break, even a box taller than a page | |
-| `length=x` | the wave on a split edge is x times as long | `1` |
+| `edge=style` | how the edges look where a page break splits the box: `wave`, `zigzag`, `scallop`, `torn`, `fade`, `dashed`, `scissors`, `continued`, `straight` (see [split edge styles](#split-edge-styles)) | `wave`, or the document default |
+| `length=x` | the wave (zigzag, scallop, torn) on a split edge is x times as long | `1` |
 | any `listings` option | passed on, e.g. `firstline=10`, `lastline=25`, `numbers=none`, `firstnumber=5` | |
 
 ```latex
 \python[caption={Newton's method}]{newton.py}
 \python[firstline=10, lastline=25]{solve.py}
 \pseudo[filename=false, span]{algo.txt}
+```
+
+### Split edge styles
+
+Where a page break splits a code box, the bottom edge of one part and the
+top edge of the next are drawn in the box's edge style. Pick the default for
+the whole document at the top, and change it for one box with `edge=…`:
+
+```latex
+\usepackage[edge=zigzag]{latex-pro}     % default for the whole document
+\latexprocodesetup{edge=torn}           % or this, anywhere (from here on)
+\python[edge=fade]{long.py}             % just this box
+\begin{pythoncode}[span, edge=continued] … \end{pythoncode}
+```
+
+![All edge styles](images/edges.png)
+
+| Style | Look | The two edges of a break |
+| --- | --- | --- |
+| `wave` (default) | smooth sine wave, cut out of the box | interlock: where one bulges out the other dips in |
+| `zigzag` | sharp teeth, like pinking shears | interlock tooth into gap |
+| `scallop` | round lobes with points between them, like a stamp edge | interlock lobe into dip |
+| `torn` | irregular jagged edge, like torn paper | interlock (the same tear on both sides) |
+| `fade` | the box fades into the page | mirror images |
+| `dashed` | dashed line where the border would be, like a perforation | dashes line up |
+| `scissors` | dashed line with scissors on the bottom edge | dashes line up |
+| `continued` | open straight edge with *continued on next page* / *continued from previous page* | labels on the right |
+| `straight` | open straight edge, nothing drawn | |
+
+The cut styles (`wave`, `zigzag`, `scallop`, `torn`) are
+`\latexprowaveheight` tall with period `\latexprowavelength` (times
+`length=x`). `fade` and `continued` leave a little extra room between the
+code and the edge so nothing is covered.
+
+| Style | Preview | Style | Preview |
+| --- | --- | --- | --- |
+| `wave` | ![wave](images/edge-wave.png) | `zigzag` | ![zigzag](images/edge-zigzag.png) |
+| `scallop` | ![scallop](images/edge-scallop.png) | `torn` | ![torn](images/edge-torn.png) |
+| `fade` | ![fade](images/edge-fade.png) | `dashed` | ![dashed](images/edge-dashed.png) |
+| `scissors` | ![scissors](images/edge-scissors.png) | `continued` | ![continued](images/edge-continued.png) |
+| `straight` | ![straight](images/edge-straight.png) | | |
+
+### `\latexprocodesetup`
+
+`\latexprocodesetup{options}`
+
+Default options for every later code block (`\python`, `\pseudo`,
+`pythoncode`, `pseudo`): any [code block option](#options-for-code-blocks),
+most usefully `edge` and `length`. A box's own options still win. Calling it
+again adds to (and overrides) the earlier defaults; inside a group it lasts
+to the end of the group. A wrong value (`edge=wavy`) is an error right
+there. Package options with `=` do the same:
+`\usepackage[edge=scallop]{latex-pro}` is `\latexprocodesetup{edge=scallop}`.
+
+```latex
+\latexprocodesetup{edge=continued}
+\latexprocodesetup{edge=zigzag, length=2}
 ```
 
 ### `\python`
@@ -637,7 +698,10 @@ the document for the ones marked "from here on").
 | `\pseudoindentfalse` / `\pseudoindenttrue` | automatic pseudocode indentation, from here on | `\pseudoindentfalse` |
 | `\latexprocodefont` | font of all code: JetBrains Mono with XeLaTeX/LuaLaTeX when it is installed or its `.ttf` files are next to the `.tex` file, otherwise `\ttfamily`; your own `\renewcommand` always wins | `\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}` |
 | `\latexprocodemath` | code font inside maths (used for `A_length` in pseudocode and `\variable{A_i}`) | `$\latexprocodemath{A}_{\latexprocodemath{length}}$` |
-| `\latexprowaveheight`, `\latexprowavelength` | height and period of the wavy edge where a code box is split | `\renewcommand\latexprowaveheight{2.5pt}` |
+| package option `edge=…` / `\latexprocodesetup` | default edge style of split code boxes (and any other code block option), from here on | `\latexprocodesetup{edge=torn}` |
+| `\latexprowaveheight`, `\latexprowavelength` | height and period of the wavy (zigzag, scallop, torn) edge where a code box is split | `\renewcommand\latexprowaveheight{2.5pt}` |
+| `\latexprofadeheight` | how tall the `fade` edge is | `\renewcommand\latexprofadeheight{20pt}` |
+| `\latexprocontinuedtext`, `\latexprocontinuedfromtext` | the labels of the `continued` edge | `\renewcommand\latexprocontinuedtext{fortsættes}` |
 | `\latexprofunctionfont` | extra font for function names (small caps) | `\renewcommand\latexprofunctionfont{}` (no small caps) |
 | `latexpro-code` box style | the tcolorbox of every code block | `\tcbset{latexpro-code/.append style={arc=0pt}}` (square corners) |
 | `latexpro-python`, `latexpro-pseudo` listings styles | the listings settings | `\lstdefinestyle{latexpro-python}{…}` |
@@ -648,7 +712,7 @@ preamble, e.g. `\definecolor{latexpro@keyword}{HTML}{D73A49}`:
 | Colour | Used for | Default |
 | --- | --- | --- |
 | `latexpro@codebg` | box and header background | `F6F8FA` |
-| `latexpro@pagebg` | page colour, used to cut the wavy split edge (change it on coloured paper) | `white` |
+| `latexpro@pagebg` | page colour, used to cut and fade the split edges (change it on coloured paper) | `white` |
 | `latexpro@codeframe` | box frame | `D0D7DE` |
 | `latexpro@header` | language name in the header | `24292F` |
 | `latexpro@headerinfo` | caption / file name in the header | `57606A` |
