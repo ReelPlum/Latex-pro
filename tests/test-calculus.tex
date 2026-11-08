@@ -9,10 +9,34 @@
   {\frac{\partial^{3} f}{\partial x^{2}\partial y}}
 \lpsame{partialdiff keeps written order}{\partialdiff[f]{x,y,x}}
   {\frac{\partial^{3} f}{\partial x\partial y\partial x}}
-\lpsame{partialdiff operator}{\partialdiff{t}}{\frac{\partial}{\partial t}}
+\lpsame{partialdiff operator}{\partialdiff[]{t}}{\frac{\partial}{\partial t}}
+% \partialdiff without [function] uses the default function f
+\lpsame{partialdiff default function}{\partialdiff{y}}{\frac{\partial f}{\partial y}}
+\lpsame{partialdiff default same as [f]}{\partialdiff{x,x,y}}{\partialdiff[f]{x,x,y}}
+\lpsame{partialdiff explicit function wins}{\partialdiff[g]{y}}{\frac{\partial g}{\partial y}}
+\setpartialdifffunction{g}
+\lpsame{setpartialdifffunction}{\partialdiff{y}}{\frac{\partial g}{\partial y}}
+\lpsame{setpartialdifffunction higher order}{\partialdiff{x,y}}
+  {\frac{\partial^{2} g}{\partial x\partial y}}
+\lpsame{setpartialdifffunction explicit wins}{\partialdiff[h]{y}}{\frac{\partial h}{\partial y}}
+\lpsame{setpartialdifffunction empty bracket still operator}{\partialdiff[]{y}}
+  {\frac{\partial}{\partial y}}
+\lpsame{setpartialdifffunction does not change hessian}{\hessian*{1}}
+  {\mat{\dfrac{\partial^{2} f}{\partial x_1^{2}}}}
+\setpartialdifffunction{u(x,y)}
+\lpsame{setpartialdifffunction with arguments}{\partialdiff{x}}
+  {\frac{\partial u(x,y)}{\partial x}}
+{\setpartialdifffunction{h}}
+\lpsame{setpartialdifffunction is local to a group}{\partialdiff{x}}
+  {\frac{\partial u(x,y)}{\partial x}}
+\setpartialdifffunction{}
+\lpsame{setpartialdifffunction empty gives operator}{\partialdiff{t}}
+  {\frac{\partial}{\partial t}}
+\setpartialdifffunction{f}
 \lpsame{diff upright d}{\diff[f]{x,x}}{\frac{\mathrm{d}^{2} f}{\mathrm{d} x^{2}}}
-\lpsame{diff does not leak into partialdiff}{\diff{x}\partialdiff{x}}
+\lpsame{diff does not leak into partialdiff}{\diff{x}\partialdiff[]{x}}
   {\frac{\mathrm{d}}{\mathrm{d} x}\frac{\partial}{\partial x}}
+\lpsame{diff keeps no default function}{\diff{x}}{\frac{\mathrm{d}}{\mathrm{d} x}}
 
 
 \lpsame{hessian 2}{\hessian{2}}

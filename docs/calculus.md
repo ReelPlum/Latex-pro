@@ -8,7 +8,9 @@ Loaded by `\usepackage{latex-pro}`, or on its own with `\usepackage{latex-pro-ca
 | `\partialdiff[f]{x,y}` | ∂²f/∂x∂y |
 | `\partialdiff[f]{x,x}` | ∂²f/∂x² |
 | `\partialdiff[f]{x,x,y}` | ∂³f/∂x²∂y |
-| `\partialdiff{t}` | ∂/∂t (operator, no function) |
+| `\partialdiff{y}` | ∂f/∂y (no `[function]` uses the default function, f) |
+| `\partialdiff[]{t}` | ∂/∂t (operator, no function) |
+| `\setpartialdifffunction{g}` | from here on `\partialdiff{y}` gives ∂g/∂y |
 | `\hessian{3}` | the 3×3 Hessian of f at v, every entry ∂²f(v)/∂xᵢ∂xⱼ written out |
 | `\hessian{n}` | the general n×n Hessian with ⋯ ⋮ ⋱ |
 | `\hessian[y]{2}` | Hessian in variables y₁, y₂ |
@@ -30,6 +32,13 @@ Notes:
 - `\partialdiff` collapses *consecutive* repeats into powers, so `{x,x,y}`
   gives ∂x²∂y, while `{x,y,x}` keeps the order you wrote. The total order
   goes on the ∂ in the numerator.
+- Without `[function]`, `\partialdiff` uses the default function, which is `f`:
+  `\partialdiff{y} = 2y - \cos(y)` gives ∂f/∂y = 2y − cos(y). Change it with
+  `\setpartialdifffunction{g}`; the change lasts until the end of the current
+  group or environment. `\setpartialdifffunction{}` makes `\partialdiff{t}` the
+  operator ∂/∂t again, and `\partialdiff[]{t}` is always the operator.
+  `\diff` has no default function (`\diff{t}` is d/dt), and `\hessian`,
+  `\gradient` and `\jacobian` keep their own `[function]` option.
 - `\hessian[variables][function][point]{dimension}` defaults to `x`, `f` and `v`.
   Leave an option empty to keep its default, e.g. `\hessian[][g]{5}` or
   `\hessian[][][\mathbf a]{2}`, and use the starred form `\hessian*` to leave the

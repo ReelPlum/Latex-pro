@@ -6,7 +6,13 @@
 % Commands
 %   \partialdiff[f]{x,y,...}       partial derivative of f w.r.t. the listed
 %                                  variables; consecutive repeats collapse to
-%                                  powers, e.g. {x,x,y} -> d^3 f / dx^2 dy
+%                                  powers, e.g. {x,x,y} -> d^3 f / dx^2 dy.
+%                                  Without [f] the default function is used
+%                                  (f): \partialdiff{y} -> df/dy;
+%                                  \partialdiff[]{t} is the operator d/dt
+%   \setpartialdifffunction{g}     change the default function of
+%                                  \partialdiff (follows TeX groups;
+%                                  {} makes \partialdiff{t} the operator)
 %   \diff[f]{x,...}                ordinary derivative, same rules as
 %                                  \partialdiff:  d^2 f / dx^2
 %   \hessian[x][f][v]{n}           Hessian matrix of f in n dimensions,
@@ -89,8 +95,22 @@
       }
   }
 
-\NewDocumentCommand \partialdiff { O{} m }
-  { \mathsc_partial:nn {#1} {#2} }
+% default function of \partialdiff when no [function] is given
+\tl_new:N  \l__mathsc_pdfun_tl
+\tl_set:Nn \l__mathsc_pdfun_tl { f }
+
+% \partialdiff{y} -> df/dy (default function), \partialdiff[g]{y} -> dg/dy,
+% \partialdiff[]{y} -> d/dy (operator, no function)
+\NewDocumentCommand \partialdiff { o m }
+  {
+    \IfNoValueTF {#1}
+      { \exp_args:NV \mathsc_partial:nn \l__mathsc_pdfun_tl {#2} }
+      { \mathsc_partial:nn {#1} {#2} }
+  }
+
+% \setpartialdifffunction{g}: \partialdiff{y} now gives dg/dy
+\NewDocumentCommand \setpartialdifffunction { m }
+  { \tl_set:Nn \l__mathsc_pdfun_tl {#1} }
 
 % \diff[f]{x,x}: same as \partialdiff but with an upright d (ordinary
 % derivative), e.g. d^2 f / dx^2
