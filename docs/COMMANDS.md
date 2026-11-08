@@ -109,6 +109,7 @@ Alphabetical. The link goes to the full entry.
 | `\rowvec[x]{n}` | row vector | [matrix](#colvec-and-rowvec) |
 | `\Rx`, `\Rx[t]` | polynomial ring ℝ[x] | [sets](#rx) |
 | `\set{…}` | set {1, 2, 3} | [sets](#set-and-setof) |
+| `\setpartialdifffunction{g}` | default function of `\partialdiff` | [calculus](#setpartialdifffunction) |
 | `\setof{…}{…}` | set builder {x ∈ S \| p(x)} | [sets](#set-and-setof) |
 | `\symmat[a]{n}` | symmetric / diagonal matrix | [matrix](#symmat) |
 | `theorem` | theorem-like environment / reference | [theorems](#theorem-environments) |
@@ -238,7 +239,7 @@ applies to the matrices below).
 
 | Argument | Meaning | Default |
 | --- | --- | --- |
-| `[function]` | what is differentiated | empty (operator ∂/∂x) |
+| `[function]` | what is differentiated; `[]` gives the operator ∂/∂x | `f` (see `\setpartialdifffunction`) |
 | `{variables}` | comma list of variables | |
 
 Consecutive repeats collapse to powers and the total order goes on ∂ in the
@@ -248,7 +249,22 @@ numerator; non-consecutive repeats keep your order.
 \partialdiff[f]{x}       % ∂f/∂x
 \partialdiff[f]{x,y}     % ∂²f/∂x∂y
 \partialdiff[f]{x,x,y}   % ∂³f/∂x²∂y
-\partialdiff{t}          % ∂/∂t
+\partialdiff{y}          % ∂f/∂y  (default function)
+\partialdiff[]{t}        % ∂/∂t   (operator)
+```
+
+### `\setpartialdifffunction`
+
+`\setpartialdifffunction{function}`
+
+Sets the function `\partialdiff` uses when no `[function]` is given (default
+`f`). It lasts until the end of the current group or environment;
+`\setpartialdifffunction{}` makes `\partialdiff{t}` the operator ∂/∂t.
+
+```latex
+\setpartialdifffunction{g}
+\partialdiff{y}          % ∂g/∂y
+\partialdiff[h]{y}       % ∂h/∂y  (an explicit function still wins)
 ```
 
 ### `\diff`
@@ -695,6 +711,7 @@ the document for the ones marked "from here on").
 | `\latexprorefstyle` | look of the name in references (small caps) | `\renewcommand\latexprorefstyle[1]{\textit{#1}}` |
 | `\latexprorefnumstyle` | look of the number in references (bold) | `\renewcommand\latexprorefnumstyle[1]{#1}` |
 | `\qrsetsize` | default QR code height, from here on | `\qrsetsize{3cm}` |
+| `\setpartialdifffunction` | default function of `\partialdiff`, from here on | `\setpartialdifffunction{g}` |
 | `\pseudoindentfalse` / `\pseudoindenttrue` | automatic pseudocode indentation, from here on | `\pseudoindentfalse` |
 | `\latexprocodefont` | font of all code: JetBrains Mono with XeLaTeX/LuaLaTeX when it is installed or its `.ttf` files are next to the `.tex` file, otherwise `\ttfamily`; your own `\renewcommand` always wins | `\renewcommand\latexprocodefont{\fontfamily{lmtt}\selectfont}` |
 | `\latexprocodemath` | code font inside maths (used for `A_length` in pseudocode and `\variable{A_i}`) | `$\latexprocodemath{A}_{\latexprocodemath{length}}$` |
