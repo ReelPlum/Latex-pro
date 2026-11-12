@@ -1,1 +1,1 @@
-x $\gets$ $\latexprocodemath{A}_{\latexprocodemath{length}}$ + $\latexprocodemath{a}_{\latexprocodemath{n+1}}$
+x $\latexprogets$ $\latexprocodemath{A}_{\latexprocodemath{length}}$ + $\latexprocodemath{a}_{\latexprocodemath{n+1}}$

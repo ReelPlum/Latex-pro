@@ -90,6 +90,7 @@ Alphabetical. The link goes to the full entry.
 | `\maximize{…}{…}` | max with stacked constraints | [notation](#minimize-and-maximize) |
 | `\method{name}` | function name in the text, styled like in code | [code](#method) |
 | `\latexprohyphenname{name}` | a hyphenated name in pseudocode, printed in one piece (used by `\pseudo`) | [code](#pseudo-file) |
+| `\latexprogets`, `\latexproeq` | a red ← assignment and a black comparing `=` in pseudocode (used by `\pseudo`) | [code](#pseudo-file) |
 | `\variable{name}` | variable in the text, written as in pseudocode | [code](#variable) |
 | `\minimize{…}{…}` | min with stacked constraints | [notation](#minimize-and-maximize) |
 | `\N` `\Z` `\Q` `\R` | ℕ ℤ ℚ ℝ | [sets](#number-sets) |
@@ -502,7 +503,15 @@ Options: [see above](#options-for-code-blocks). What it does with the text:
   A `-` before a digit or between spaces (`n-1`, `a - b`) is still a red
   minus, so write `a - b` with spaces when you mean subtraction of two
   variables. (Internally such a name is printed by
-  `\latexprohyphenname{name}`; you do not need to type it.)
+  `\latexprohyphenname{name}`; you do not need to type it.) A call such
+  as `Is-Merge-Constituted(M, B)` is a function name as well.
+- **Assignment and comparison:** assignments are red (`x = 1`, `x := 1`,
+  the ← of `x <- 1`), comparisons black (`a == b`, ≤ ≥ ≠ < >). A single `=`
+  in a condition (after `if`/`elseif`/`elif`/`while`/`until` or `return`, before
+  `then`/`do`) compares, so it is black; `for i = 1 to n` and `x = 1`
+  assign. (Internally these are printed by `\latexprogets` and
+  `\latexproeq`; you do not need to type them.) In Python code `=`, `+=`,
+  `-=`, `:=` … are red and `==`, `!=`, `<`, `>`, `<=`, `>=` black.
 - **Automatic indentation:** write every line flush left. Lines after
   `function`/`procedure`/`repeat`/`else`, after a line ending in
   `then`/`do`/`:`/`{`, or a `for`/`foreach`/`while`/`if` header are
