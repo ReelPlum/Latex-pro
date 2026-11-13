@@ -56,7 +56,8 @@ with GitHub-light colours, like a code block in an editor:
 
 | What | Colour |
 | --- | --- |
-| keywords (`def`, `for`, `if`, `return`, `then`, …) and operators (`=`, `+`, `**`, …) | red |
+| keywords (`def`, `for`, `if`, `return`, `then`, …), assignments (`=`, `:=`, `+=`, `<-`, …) and other operators (`+`, `-`, `**`, …) | red |
+| comparisons (`==`, `!=`, `<`, `>`, `<=`, `>=`) | black, like the text |
 | function names: a name after `def`/`class`/`function`, or used as `name(` anywhere in the file, in small caps like `\textsc{merge}` | purple |
 | built-ins such as `print`, `range`, `len` | purple |
 | `True`, `False`, `None`, `self` (pseudocode: `true`, `false`, `null`) | blue |
@@ -110,7 +111,14 @@ What `\pseudo` does with the file:
   `function ADD-building-to-SKYLINE(A, b)` gives one function name in small
   caps (also wherever it is called), and `skyline-with-one` is one variable.
   A `-` before a digit or between spaces (`n-1`, `a - b`) stays a red minus,
-  so put spaces around `-` when you subtract two variables.
+  so put spaces around `-` when you subtract two variables. A hyphenated
+  call such as `Is-Merge-Constituted(M, B)` is a function name too.
+- **Assignment and comparison.** Assignments are red (`x = 1`, `x := 1`, and
+  the ← of `x <- 1`); comparisons are black (`a == b`, and ≤ ≥ ≠ < >).
+  A single `=` in a condition, after `if`/`elseif`/`elif`/`while`/`until` or `return` and
+  before `then`/`do`, compares, so it is black too: in
+  `if a = b then x = 1` the first `=` is black and the second red, and
+  `for i = 1 to n` assigns (red).
 - **Automatic indentation.** You can write every line flush left. After a
   line starting with `function`/`procedure`/`repeat`/`else`, or ending in
   `then`/`do`/`:`/`{`, or a `for`/`foreach`/`while`/`if` header, the next

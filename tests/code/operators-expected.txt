@@ -1,0 +1,11 @@
+x = 1
+x := 1
+x $\latexprogets$ 1
+if a $\latexproeq$ b then x = 1
+elseif a == b then
+    while a $\latexproeq$ b do
+        for i = 1 to n do
+        until a $\latexproeq$ b
+        if a $\leq$ b and c $\neq$ d then
+            y = a = b // if a = b
+            return a $\latexproeq$ b

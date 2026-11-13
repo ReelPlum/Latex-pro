@@ -161,10 +161,14 @@ Text with \method{merge} in it.
 % keyword (operator) colour was
 \ExplSyntaxOn
 \iow_new:N \g__test_colours_iow
+\cs_generate_variant:Nn \tl_replace_all:Nnn { Nen }
 \cs_new_protected:Npn \__test_colours_write:n #1
   {
     \iow_open:Nn \g__test_colours_iow { \c_sys_jobname_str -colours.tmp }
-    \iow_now:Ne \g__test_colours_iow { \tl_to_str:n {#1} }
+    % a line break in the argument (^^M) is a new line in the file
+    \tl_set:Ne \l_tmpa_tl { \tl_to_str:n {#1} }
+    \tl_replace_all:Nen \l_tmpa_tl { \char_generate:nn { 13 } { 12 } } { \iow_newline: }
+    \iow_now:Ne \g__test_colours_iow { \l_tmpa_tl }
     \iow_close:N \g__test_colours_iow
   }
 \NewDocumentCommand \lpcolours { +v }
@@ -213,6 +217,82 @@ Text with \method{merge} in it.
   {\variable{left-sum_i}}{$\latexprocodemath{left-sum}_{\latexprocodemath{i}}$}
 \lpsametext{variable subscript n-1 is still a subtraction}
   {\variable{a_{n-1}}}{$\latexprocodemath{a}_{\latexprocodemath{n}-\latexprocodemath{1}}$}
+
+% Regression: a call of a hyphenated function (Is-Merge-Constituted(...))
+% was not coloured. \pseudo harvests function names from its prepared copy,
+% where the name is already wrapped as $\mbox{\latexprohyphenname{...}}$,
+% so "name(" was never seen there. The wrapper is now looked through.
+\pseudo{code/hyphen-call.txt}
+\ExplSyntaxOn
+\__latexpro_code_harvest_hyphen:n { \pseudotmp }
+\lptrue{hyphenated~function~call~is~found~in~the~prepared~pseudo~copy}
+  { \str_if_eq:eeTF { \seq_use:Nn \l__latexpro_code_hyphen_names_seq { , } }
+      { is-merge-constituted } { \iftrue } { \iffalse } }
+\__latexpro_code_harvest_hyphen:n { code/hyphen.txt }
+\lptrue{hyphenated~names~from~the~prepared~copy~match~the~source}
+  { \str_if_eq:eeTF { \seq_use:Nn \l__latexpro_code_hyphen_names_seq { , } }
+      { add-building-to-skyline } { \iftrue } { \iffalse } }
+\__latexpro_code_harvest_hyphen:n { code/hyphen-expected.txt }
+\lptrue{hyphenated~definition~is~found~in~the~prepared~copy}
+  { \str_if_eq:eeTF { \seq_use:Nn \l__latexpro_code_hyphen_names_seq { , } }
+      { add-building-to-skyline } { \iftrue } { \iffalse } }
+\ExplSyntaxOff
+
+% assignment is red (keyword colour), comparison black (text colour), as
+% \leq \geq \neq already were. Regression: "==" was red like "=", and
+% listings cut it into two "=" so it could not be told apart.
+\pseudo{code/operators.txt}
+\lpsamefile{pseudo marks arrow assignments and condition =}{\pseudotmp}{code/operators-expected.txt}
+\lpcolours{x = 1}
+\lptrue{pseudo: = assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcolours{x := 1}
+\lptrue{pseudo: := assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcolours{x $\latexprogets$ 1}
+\lptrue{pseudo: <- assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcolours{end function
+x}
+\lptrue{end function at the end of a line: the next name is no function}{\ifnum\lpsawfn=0 }
+\lpcolours{end function
+$\mbox{\latexprohyphenname{Is-Merge}}$}
+\lptrue{end function: the next hyphenated name is no function}{\ifnum\lpsawfn=0 }
+\lpcolours{x == 1}
+\lptrue{pseudo: == compares (black)}{\ifnum\lpsawkw=0 }
+\lpcolours{a $\latexproeq$ b}
+\lptrue{pseudo: = in a condition compares (black)}{\ifnum\lpsawkw=0 }
+\lpcolours{a $<$ b $\leq$ c $\neq$ d}
+\lptrue{pseudo: < <= != compare (black)}{\ifnum\lpsawkw=0 }
+\lpcolours{n-1}
+\lptrue{pseudo: minus is still red}{\ifnum\lpsawkw=1 }
+\lpcolours{x // a = b == c}
+\lptrue{pseudo: = in a comment is not coloured}{\ifnum\lpsawkw=0 }
+\lpcolours{"a = b"}
+\lptrue{pseudo: = in a string is not coloured}{\ifnum\lpsawkw=0 }
+\lpcomments{latexpro-python}{a = b}
+\lptrue{python: = assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{a += b}
+\lptrue{python: += assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{a -= b}
+\lptrue{python: -= assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{a //= b}
+\lptrue{python: //= assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{(a := b)}
+\lptrue{python: := assigns (red)}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{a == b}
+\lptrue{python: == compares (black)}{\ifnum\lpsawkw=0 }
+\lpcomments{latexpro-python}{a != b}
+\lptrue{python: != compares (black)}{\ifnum\lpsawkw=0 }
+\lpcomments{latexpro-python}{a <= b >= c}
+\lptrue{python: <= >= compare (black)}{\ifnum\lpsawkw=0 }
+\lpcomments{latexpro-python}{a < b > c}
+\lptrue{python: < > compare (black)}{\ifnum\lpsawkw=0 }
+\lpcomments{latexpro-python}{a << 2}
+\lptrue{python: << is an operator (red)}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{f(x) -> int}
+\lptrue{python: -> is red}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{a - b}
+\lptrue{python: minus is still red}{\ifnum\lpsawkw=1 }
+\lpcomments{latexpro-python}{x # a = b}
+\lptrue{python: = in a comment is not coloured}{\ifnum\lpsawkw=0 }
 
 % Regression: a pseudo block with no \end{pseudo} ran on into the next
 % block, and the "\begin{pseudo}[...]" line printed as code gave "Missing

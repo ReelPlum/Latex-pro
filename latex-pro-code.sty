@@ -149,6 +149,9 @@
 % identifiers: the name right after def / class / function is a function name
 \newcommand\latexpro@ident{%
   \iflatexpro@fn\global\latexpro@fnfalse\latexpro@functionstyle\fi}
+% ... on the same line: "end function" at the end of a line must not make
+% the first name on the next line a function name
+\lst@AddToHook{EOL}{\global\latexpro@fnfalse}
 % xcolor and tcolorbox are loaded at \begin{document} if the document has not
 % loaded them, so \usepackage[...]{xcolor} anywhere in the preamble never gives
 % an option clash.
@@ -338,6 +341,14 @@
 % in ordinary code (\lst@Pmode), never in a comment or a string
 \newcommand\latexpro@keywordcolor{%
   \ifnum\lst@mode=\lst@Pmode\color{latexpro@keyword}\fi}
+% assignment and comparison operators. Assignments (= := <- += -=) and the
+% other operators are red (keyword colour); comparisons (== != < > <= >=)
+% are black (text colour), like \leq \geq \neq. listings cuts operators into
+% single characters, so "==" could never be told apart from "=" as
+% otherkeywords; these are literate replacements instead (the first
+% character of each must not be an otherkeyword: those win over literate).
+% {} keeps a font from joining == or -> into one ligature.
+\newcommand\latexpro@op[1]{{\latexpro@keywordcolor#1}}
 % the code font for listings: listings prints * - < > \ _ as plain
 % characters only when the font is \ttdefault (otherwise it uses centred or
 % maths symbols, which sit wrong in another monospace font such as JetBrains
@@ -376,6 +387,14 @@
     {é}{{\'e}}1 {è}{{\`e}}1 {ß}{{\ss}}1
     {—}{{-{}-}}1 {–}{{-}}1 {“}{{``}}1 {”}{{''}}1 {‘}{{`}}1 {’}{{'}}1
     {…}{{\ldots}}1 {×}{{$\times$}}1 {·}{{$\cdot$}}1
+    % single characters before the longer operators that start with them
+    {=}{{\latexpro@op{=}}}1 {-}{{\latexpro@op{-}}}1
+    {<}{{\string<}}1 {>}{{\string>}}1
+    {==}{{={}=}}2 {!=}{{!{}=}}2 {<=}{{\string<{}=}}2 {>=}{{\string>{}=}}2
+    {:=}{{\latexpro@op{:{}=}}}2 {-=}{{\latexpro@op{-{}=}}}2
+    {->}{{\latexpro@op{-{}\string>}}}2
+    {<<}{{\latexpro@op{\string<{}\string<}}}2
+    {>>}{{\latexpro@op{\string>{}\string>}}}2
 }
 
 % ---------------------------------------------------------------------------
@@ -386,8 +405,9 @@
   language=Python,
   deletekeywords={def,class,True,False,None,print},
   morekeywords={async,await,nonlocal,with,as,yield},
-  % operators share the keyword colour
-  otherkeywords={==,!=,<=,>=,**,//,+=,-=,*=,/=,->,=,+,-,*,/,\%,<,>,&,|,^,~,@},
+  % operators share the keyword colour; = - < > (and ==, <=, ->, ...)
+  % are literate replacements in latexpro-code: comparisons are black
+  otherkeywords={**,//,+=,*=,/=,+,*,/,\%,&,|,^,~,@},
   morekeywords=[2]{abs,all,any,bool,dict,enumerate,float,int,len,list,map,
     max,min,open,print,range,reversed,round,set,sorted,str,sum,tuple,type,
     zip,isinstance,super,input,filter,iter,next,repr,format,hash,id,divmod,pow},
@@ -532,13 +552,20 @@
       {
         \ior_str_map_inline:Nn \g__latexpro_code_ior
           {
-            \regex_extract_all:nnN
+            % \pseudo reads its prepared copy, where a hyphenated name is
+            % already wrapped as $\mbox{\latexprohyphenname{NAME}}$: take
+            % the wrapper off again, or NAME( is never seen as a call
+            \str_set:Nn \l__latexpro_code_line_str {##1}
+            \regex_replace_all:nnN
+              { \$ \\mbox \{ \\latexprohyphenname \{ ([^\}]*) \} \} \$ }
+              { \1 } \l__latexpro_code_line_str
+            \regex_extract_all:nVN
               {
                 (?: [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ \s* \( )
                 | (?: (?:def|class|function|procedure|algorithm) \s+
                       [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ )
               }
-              {##1} \l__latexpro_code_found_seq
+              \l__latexpro_code_line_str \l__latexpro_code_found_seq
             \seq_map_inline:Nn \l__latexpro_code_found_seq
               {
                 \str_set:Ne \l__latexpro_code_name_str { \str_foldcase:n {####1} }
@@ -701,7 +728,9 @@
   % operators share the keyword colour; "/" is coloured by the
   % pre-processing instead (as an otherkeyword it would stop listings from
   % seeing // and /* as the start of a comment)
-  otherkeywords={:=,==,=,+,-,\%},
+  % = := - (and the black comparison ==) are literate replacements in
+  % latexpro-code
+  otherkeywords={+,\%},
   morekeywords=[2]{print,input,output,call,length,len,max,min,abs,swap},
   morekeywords=[3]{true,false,null,nil,none},
   % the name after these is coloured as a function name
@@ -782,6 +811,7 @@
         \regex_replace_all:nnN { /\* } { @@latexpro@open@@ } \l__latexpro_pseudo_code_str
         \regex_replace_all:nnN { \*/ } { @@latexpro@close@@ } \l__latexpro_pseudo_code_str
         \__latexpro_pseudo_math_part:N \l__latexpro_pseudo_code_str
+        \__latexpro_pseudo_operators:N \l__latexpro_pseudo_code_str
         % names with hyphens (ADD-building-to-SKYLINE, left-part) are one
         % name, not a subtraction: a "-" between two letters joins them.
         % A "-" before a digit or a space (n-1, a - b) stays an operator.
@@ -794,6 +824,37 @@
         \regex_replace_all:nnN { @@latexpro@close@@ } { */ } \l__latexpro_pseudo_code_str
         \__latexpro_pseudo_math_part:N \l__latexpro_pseudo_comment_str
         \str_set:Ne #1 { \l__latexpro_pseudo_code_str \l__latexpro_pseudo_comment_str }
+      }
+  }
+% assignment and comparison in the code part of a line (after
+% \__latexpro_pseudo_math_part:N, so <- is already $\gets$):
+%  * an arrow assignment (<-, \gets, \leftarrow) is red like "=" and ":=";
+%  * a lone "=" in a condition (if / elseif / elif / while / until, up to
+%    then or do) or after return is a comparison, so black like "==":
+%    "if A_m = x then" and "return a = b" compare, "for i = 1 to n" and
+%    "x = 1" assign.
+\cs_generate_variant:Nn \regex_extract_once:nnNT { nV }
+\seq_new:N \l__latexpro_pseudo_cond_seq
+\str_new:N \l__latexpro_pseudo_cond_str
+\cs_new_protected:Npn \__latexpro_pseudo_operators:N #1
+  {
+    \regex_replace_all:nnN { \$ \\ (?: gets | leftarrow ) \$ }
+      { \$ \\latexprogets \$ } #1
+    \regex_extract_once:nVNT
+      { \A ( \s* (?i) (?: if | elseif | elif | else \s+ if | while | until | return ) \b .*? )
+        ( \b (?i) (?: then | do ) \b .* )? \Z }
+      #1 \l__latexpro_pseudo_cond_seq
+      {
+        \str_set:Ne \l__latexpro_pseudo_cond_str
+          { \seq_item:Nn \l__latexpro_pseudo_cond_seq { 2 } }
+        % "=" that is not part of := == += -= *= %= (<= >= != are maths)
+        \regex_replace_all:nnN { (\A | [^=:+\-*/\%!<>]) = ([^=] | \Z) }
+          { \1 \$ \\latexproeq \$ \2 } \l__latexpro_pseudo_cond_str
+        \str_set:Ne #1
+          {
+            \l__latexpro_pseudo_cond_str
+            \seq_item:Nn \l__latexpro_pseudo_cond_seq { 3 }
+          }
       }
   }
 \cs_new_protected:Npn \__latexpro_pseudo_math_part:N #1
@@ -911,6 +972,10 @@
 % only the Pmode every listing starts in
 \tl_const:Nn \latexpro@plainmodes
   { { \lst@EnterMode { \lst@Pmode } { \lst@SelectCharTable } } }
+% $\latexprogets$: an arrow assignment, red like = and := ; $\latexproeq$:
+% an "=" that compares (in a condition), black like ==
+\NewDocumentCommand \latexprogets { } { { \color{latexpro@keyword} \gets } }
+\NewDocumentCommand \latexproeq { } { \mbox { \color{latexpro@text} = } }
 \str_new:N \l__latexpro_hyphen_name_str
 \NewDocumentCommand \latexprohyphenname { m }
   {
