@@ -56,7 +56,8 @@ with GitHub-light colours, like a code block in an editor:
 
 | What | Colour |
 | --- | --- |
-| keywords (`def`, `for`, `if`, `return`, `then`, …) and operators (`=`, `+`, `**`, …) | red |
+| keywords (`def`, `for`, `if`, `return`, `then`, …), assignments (`=`, `:=`, `+=`, `<-`, …) and other operators (`+`, `-`, `**`, …) | red |
+| comparisons (`==`, `!=`, `<`, `>`, `<=`, `>=`) | black, like the text |
 | function names: a name after `def`/`class`/`function`, or used as `name(` anywhere in the file, in small caps like `\textsc{merge}` | purple |
 | built-ins such as `print`, `range`, `len` | purple |
 | `True`, `False`, `None`, `self` (pseudocode: `true`, `false`, `null`) | blue |
@@ -71,7 +72,13 @@ with no border; the side borders stop where the wave meets them). The wave at
 the bottom of one part and the wave at the top of the next fit together like
 puzzle pieces: where one bulges out, the other dips in. `length=x`
 makes the waves x times as long, e.g. `\python[length=3]{long.py}`
-(default `1`). `span` lets any box break, even a short one at the
+(default `1`). The wave is the default edge style; others are `zigzag`,
+`scallop`, `torn` (these also interlock), `fade`, `dashed`, `scissors`,
+`continued` (a *continued on next page* label) and `straight`. Choose the
+default at the top with `\usepackage[edge=zigzag]{latex-pro}` or
+`\latexprocodesetup{edge=zigzag}`, and for one box with
+`\python[edge=torn]{long.py}`. See
+[split edge styles](COMMANDS.md#split-edge-styles) for a picture of each. `span` lets any box break, even a short one at the
 bottom of a page: `\python[span]{f.py}`, `\pseudo[span]{algo.txt}`,
 `\begin{pythoncode}[span]`; `span=false` never breaks, even a box taller
 than a page. Nothing needs `-shell-escape`. Change the look after loading the package, e.g.
@@ -104,7 +111,14 @@ What `\pseudo` does with the file:
   `function ADD-building-to-SKYLINE(A, b)` gives one function name in small
   caps (also wherever it is called), and `skyline-with-one` is one variable.
   A `-` before a digit or between spaces (`n-1`, `a - b`) stays a red minus,
-  so put spaces around `-` when you subtract two variables.
+  so put spaces around `-` when you subtract two variables. A hyphenated
+  call such as `Is-Merge-Constituted(M, B)` is a function name too.
+- **Assignment and comparison.** Assignments are red (`x = 1`, `x := 1`, and
+  the ← of `x <- 1`); comparisons are black (`a == b`, and ≤ ≥ ≠ < >).
+  A single `=` in a condition, after `if`/`elseif`/`elif`/`while`/`until` or `return` and
+  before `then`/`do`, compares, so it is black too: in
+  `if a = b then x = 1` the first `=` is black and the second red, and
+  `for i = 1 to n` assigns (red).
 - **Automatic indentation.** You can write every line flush left. After a
   line starting with `function`/`procedure`/`repeat`/`else`, or ending in
   `then`/`do`/`:`/`{`, or a `for`/`foreach`/`while`/`if` header, the next

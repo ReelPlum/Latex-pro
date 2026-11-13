@@ -1,6 +1,6 @@
 function search(A, x)
-    for i $\gets$ 1 to n do
-        if $\latexprocodemath{A}_{\latexprocodemath{i}}$ = x then
+    for i $\latexprogets$ 1 to n do
+        if $\latexprocodemath{A}_{\latexprocodemath{i}}$ $\latexproeq$ x then
             return i
         end if
     end for

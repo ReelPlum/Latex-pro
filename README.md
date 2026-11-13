@@ -35,7 +35,7 @@ its own, e.g. `\usepackage{latex-pro-matrix}`.
 | Module | Commands | Docs |
 | --- | --- | --- |
 | `latex-pro-matrix` | `\mat` `\bmat` `\pmat` `\usematb` `\usematp` `\idmat` `\colvec` `\rowvec` `\genmat` `\symmat` `\diagmat` | [docs/matrix.md](docs/matrix.md) |
-| `latex-pro-calculus` | `\partialdiff` `\diff` `\hessian` `\gradient` `\jacobian` | [docs/calculus.md](docs/calculus.md) |
+| `latex-pro-calculus` | `\partialdiff` `\setpartialdifffunction` `\diff` `\hessian` `\gradient` `\jacobian` | [docs/calculus.md](docs/calculus.md) |
 | `latex-pro-code` | `\python` `\py` `pythoncode` `\pseudo` `pseudo` `\method` `\variable` (Python and pseudocode listings) | [docs/code.md](docs/code.md) |
 | `latex-pro-links` | `\qr` `\qr*` `\qrsetsize` (QR code of a pasted link) | [docs/links.md](docs/links.md) |
 | `latex-pro-theorems` | theorem, proposition, lemma, … environments, `\proposition{label}` references, `\booksection` `\bookchapter` `\bookeq` | [docs/theorems.md](docs/theorems.md) |
@@ -43,7 +43,10 @@ its own, e.g. `\usepackage{latex-pro-matrix}`.
 | `latex-pro-notation` | `\norm` `\abs` `\inner` `\tp` `\map` `\defeq` `\argmin` `\argmax` `\minimize` `\maximize` | [docs/notation.md](docs/notation.md) |
 
 Options of `latex-pro`: `square` / `round` (bracket style of the matrix
-commands) and `bysection` (theorems numbered 2.1, 2.2, …).
+commands), `bysection` (theorems numbered 2.1, 2.2, …) and `edge=<style>`
+(how code blocks look where a page break splits them: `wave` by default,
+or `zigzag`, `scallop`, `torn`, `fade`, `dashed`, `scissors`, `continued`,
+`straight`; see [split edge styles](docs/COMMANDS.md#split-edge-styles)).
 
 ## Examples and tests
 

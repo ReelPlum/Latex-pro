@@ -4,7 +4,13 @@
 \begin{document}
 \section*{Derivatives}
 \[ \partialdiff[f]{x} \quad \partialdiff[f]{x,y} \quad \partialdiff[f]{x,x}
-   \quad \partialdiff[f]{x,x,y} \quad \partialdiff[f]{x,y,x} \quad \partialdiff{t} \quad \partialdiff[u]{x_1, x_1} \]
+   \quad \partialdiff[f]{x,x,y} \quad \partialdiff[f]{x,y,x} \quad \partialdiff[]{t} \quad \partialdiff[u]{x_1, x_1} \]
+% without [function], \partialdiff uses the default function (f)
+\[ \partialdiff{y} = 2y - \cos(y) \]
+% change the default function from here on
+\setpartialdifffunction{g}
+\[ \partialdiff{x,y} \quad \partialdiff[h]{x} \]
+\setpartialdifffunction{f}
 \[ \diff[f]{x} \quad \diff[f]{x,x} \quad \diff{t} \]
 \section*{Hessian}
 \[ H_f = \hessian{2} \]
