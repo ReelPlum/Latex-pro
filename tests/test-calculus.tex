@@ -74,6 +74,12 @@
   {\mat{\dfrac{\partial g(a)}{\partial s} & \dfrac{\partial g(a)}{\partial t}}}
 \lpsame{gradient list in size argument wins over symbol}{\gradient[y]{u,w}}{\gradient[u,w]{}}
 \lpsame{hessian list in size argument}{\hessian{x,y}}{\hessian[x,y]{}}
+% regression: \hessian{x,y} must not give x_1, x_2, ..., x_x, x_y
+\lpsame{hessian star list in size argument}{\hessian*{x,y}}
+  {\mat{\dfrac{\partial^{2} f}{\partial x^{2}} & \dfrac{\partial^{2} f}{\partial x\partial y} \\
+        \noalign{\vskip 1ex}
+        \dfrac{\partial^{2} f}{\partial y\partial x} & \dfrac{\partial^{2} f}{\partial y^{2}}}}
+\lpsame{hessian list in size argument keeps options}{\hessian[][g][a]{s,t}}{\hessian[s,t][g][a]{}}
 \lpsame{jacobian list in size argument}{\jacobian{2}{x,y}}{\jacobian[x,y]{2}{}}
 \lpsame{jacobian}{\jacobian*{2}{1}}
   {\mat{\dfrac{\partial f_1}{\partial x_1} \\ \noalign{\vskip 1ex} \dfrac{\partial f_2}{\partial x_1}}}
