@@ -313,7 +313,8 @@ Options exactly as for [`\hessian`](#hessian). Gives the row vector
 ```latex
 \gradient{3}
 \gradient*[y][g]{n}
-\gradient[x,y,z]{}
+\gradient{x,y,z}                  % exactly x, y, z (3 entries)
+\gradient[x,y,z]{}                % the same
 ```
 
 ### `\jacobian`
