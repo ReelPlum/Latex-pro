@@ -20,7 +20,8 @@
 %                                  evaluated at the point v (default v;
 %                                  \hessian* leaves the point out). An empty
 %                                  option keeps its default: \hessian[][g]{5}.
-%   \gradient[x][f][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v
+%   \gradient[x][f][v]{n}          gradient row vector (df/dx_1 ... df/dx_n) at v;
+%                                  \gradient{x,y,z} -> (df/dx df/dy df/dz)
 %   \jacobian[x][f][v]{m}{n}       m x n derivative matrix of f = (f_1..f_m)
 %   (for all three: first option = variables, [y] or a list [x,y,z];
 %    second = function, third = point)
@@ -128,6 +129,8 @@
 % Variables for \hessian, \gradient and \jacobian
 %   [x]      indexed: x_1, x_2, ..., x_n  (the size comes from {n})
 %   [x,y,z]  exactly these variables      (the size is the length of the list)
+%   {x,y,z}  a list in the size argument, e.g. \gradient{x,y,z}, is the
+%            same as [x,y,z]{}: exactly these variables, no x_1, x_2, ...
 % Fills \l__mathsc_var_prop (index -> variable) and \l__mathsc_size_tl.
 \prop_new:N \l__mathsc_var_prop
 \tl_new:N   \l__mathsc_size_tl
@@ -135,25 +138,36 @@
 \int_new:N  \l__mathsc_vi_int
 \cs_new_protected:Npn \__mathsc_vars:nn #1#2
   {
+    \tl_if_in:nnTF {#2} { , }
+      { \__mathsc_vars_list:n {#2} }
+      {
+        \tl_if_in:nnTF {#1} { , }
+          { \__mathsc_vars_list:n {#1} }
+          { \__mathsc_vars_indexed:nn {#1} {#2} }
+      }
+  }
+% #1 = comma list of variables
+\cs_new_protected:Npn \__mathsc_vars_list:n #1
+  {
     \prop_clear:N \l__mathsc_var_prop
-    \tl_if_in:nnTF {#1} { , }
+    \seq_set_from_clist:Nn \l__mathsc_vlist_seq {#1}
+    \tl_set:Ne \l__mathsc_size_tl { \seq_count:N \l__mathsc_vlist_seq }
+    \int_zero:N \l__mathsc_vi_int
+    \seq_map_inline:Nn \l__mathsc_vlist_seq
       {
-        \seq_set_from_clist:Nn \l__mathsc_vlist_seq {#1}
-        \tl_set:Ne \l__mathsc_size_tl { \seq_count:N \l__mathsc_vlist_seq }
-        \int_zero:N \l__mathsc_vi_int
-        \seq_map_inline:Nn \l__mathsc_vlist_seq
-          {
-            \int_incr:N \l__mathsc_vi_int
-            \prop_put:Nen \l__mathsc_var_prop
-              { \int_use:N \l__mathsc_vi_int } {##1}
-          }
+        \int_incr:N \l__mathsc_vi_int
+        \prop_put:Nen \l__mathsc_var_prop
+          { \int_use:N \l__mathsc_vi_int } {##1}
       }
-      {
-        \tl_set:Nn \l__mathsc_size_tl {#2}
-        \__mathsc_indices:Nn \l__mathsc_vlist_seq {#2}
-        \seq_map_inline:Nn \l__mathsc_vlist_seq
-          { \prop_put:Nnn \l__mathsc_var_prop {##1} { #1 \sb {##1} } }
-      }
+  }
+% #1 = one symbol, #2 = size: variables #1_1 .. #1_#2
+\cs_new_protected:Npn \__mathsc_vars_indexed:nn #1#2
+  {
+    \prop_clear:N \l__mathsc_var_prop
+    \tl_set:Nn \l__mathsc_size_tl {#2}
+    \__mathsc_indices:Nn \l__mathsc_vlist_seq {#2}
+    \seq_map_inline:Nn \l__mathsc_vlist_seq
+      { \prop_put:Nnn \l__mathsc_var_prop {##1} { #1 \sb {##1} } }
   }
 \cs_new:Npn \__mathsc_var:n #1 { \prop_item:Nn \l__mathsc_var_prop {#1} }
 

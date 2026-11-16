@@ -62,6 +62,19 @@
 \lpsame{gradient empty option}{\gradient[][h]{2}}{\gradient[x][h][v]{2}}
 \lpsame{gradient list}{\gradient*[x,y]{}}
   {\mat{\dfrac{\partial f}{\partial x} & \dfrac{\partial f}{\partial y}}}
+% regression: \gradient{x,y,z} used to give x_1, x_2, ..., x_x, x_y, x_z;
+% a list in the size argument means exactly these variables
+\lpsame{gradient list in size argument}{\gradient{x,y,z}}
+  {\mat{\dfrac{\partial f(v)}{\partial x} & \dfrac{\partial f(v)}{\partial y}
+        & \dfrac{\partial f(v)}{\partial z}}}
+\lpsame{gradient list in size argument same as option}{\gradient{x,y,z}}{\gradient[x,y,z]{}}
+\lpsame{gradient star list in size argument}{\gradient*{x,y}}
+  {\mat{\dfrac{\partial f}{\partial x} & \dfrac{\partial f}{\partial y}}}
+\lpsame{gradient list in size argument keeps options}{\gradient[][g][a]{s,t}}
+  {\mat{\dfrac{\partial g(a)}{\partial s} & \dfrac{\partial g(a)}{\partial t}}}
+\lpsame{gradient list in size argument wins over symbol}{\gradient[y]{u,w}}{\gradient[u,w]{}}
+\lpsame{hessian list in size argument}{\hessian{x,y}}{\hessian[x,y]{}}
+\lpsame{jacobian list in size argument}{\jacobian{2}{x,y}}{\jacobian[x,y]{2}{}}
 \lpsame{jacobian}{\jacobian*{2}{1}}
   {\mat{\dfrac{\partial f_1}{\partial x_1} \\ \noalign{\vskip 1ex} \dfrac{\partial f_2}{\partial x_1}}}
 \lpsame{jacobian empty option}{\jacobian[][g]{2}{2}}{\jacobian[x][g][v]{2}{2}}

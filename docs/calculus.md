@@ -22,7 +22,8 @@ Loaded by `\usepackage{latex-pro}`, or on its own with `\usepackage{latex-pro-ca
 | `\diff[f]{x}`, `\diff[f]{x,x}` | df/dx, d²f/dx² (same rules as `\partialdiff`, upright d) |
 | `\gradient{3}` | gradient ∇f(v) as a row vector (∂f(v)/∂x₁ ⋯ ∂f(v)/∂x₃), as in the IMO26 notes |
 | `\gradient*[y][g]{n}` | general gradient of g in y₁,…,yₙ, no point |
-| `\gradient[x,y,z]{}` | gradient in the variables x, y, z |
+| `\gradient{x,y,z}` | gradient in exactly the variables x, y, z: (∂f(v)/∂x ∂f(v)/∂y ∂f(v)/∂z) |
+| `\gradient[x,y,z]{}` | the same, with the list as an option |
 | `\jacobian{2}{3}` | 2×3 derivative matrix f′(v), entries ∂fᵢ(v)/∂xⱼ |
 | `\jacobian[x,y]{2}{}` | 2×2 derivative matrix in the variables x, y |
 | `\jacobian*{m}{n}` | general m×n derivative matrix, no point |
@@ -45,7 +46,9 @@ Notes:
   point out. The same goes for `\gradient` and `\jacobian`.
   The variables are either
   one symbol, `[y]` → y₁, y₂, …, or a list, `[x,y,z]` → exactly x, y, z (then the
-  size comes from the list and `{}` is enough).
+  size comes from the list and `{}` is enough). A list can also go straight in
+  the size argument: `\gradient{x,y,z}`, `\hessian{x,y}` and `\jacobian{2}{x,y}`
+  are the same as `\gradient[x,y,z]{}`, `\hessian[x,y]{}` and `\jacobian[x,y]{2}{}`.
   The entries are built with `\partialdiff` and the matrix with `\mat`, so the
   bracket style of the matrix module applies.
 
