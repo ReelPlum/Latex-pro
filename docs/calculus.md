@@ -11,20 +11,20 @@ Loaded by `\usepackage{latex-pro}`, or on its own with `\usepackage{latex-pro-ca
 | `\partialdiff{y}` | ∂f/∂y (no `[function]` uses the default function, f) |
 | `\partialdiff[]{t}` | ∂/∂t (operator, no function) |
 | `\setpartialdifffunction{g}` | from here on `\partialdiff{y}` gives ∂g/∂y |
-| `\hessian{3}` | the 3×3 Hessian of f at v, every entry ∂²f(v)/∂xᵢ∂xⱼ written out |
+| `\hessian{3}` | the 3×3 Hessian of f at v, every entry ∂²f/∂xᵢ∂xⱼ(v) written out |
 | `\hessian{n}` | the general n×n Hessian with ⋯ ⋮ ⋱ |
 | `\hessian[y]{2}` | Hessian in variables y₁, y₂ |
-| `\hessian[x,y]{2}` | Hessian in the variables x and y (entries ∂²f(v)/∂x∂y, …) |
+| `\hessian[x,y]{2}` | Hessian in the variables x and y (entries ∂²f/∂x∂y(v), …) |
 | `\hessian[y][g]{n}` | Hessian of g in y₁,…,yₙ |
 | `\hessian[x][f][\mathbf{a}]{2}` | Hessian of f at the point **a** |
 | `\hessian*{2}` | Hessian with no point, entries ∂²f/∂xᵢ∂xⱼ (the star leaves the point out) |
 | `\hessian[][g]{5}` | an empty option keeps its default: variables x, function g |
 | `\diff[f]{x}`, `\diff[f]{x,x}` | df/dx, d²f/dx² (same rules as `\partialdiff`, upright d) |
-| `\gradient{3}` | gradient ∇f(v) as a row vector (∂f(v)/∂x₁ ⋯ ∂f(v)/∂x₃), as in the IMO26 notes |
+| `\gradient{3}` | gradient ∇f(v) as a row vector (∂f/∂x₁(v) ⋯ ∂f/∂x₃(v)), as in the IMO26 notes |
 | `\gradient*[y][g]{n}` | general gradient of g in y₁,…,yₙ, no point |
-| `\gradient{x,y,z}` | gradient in exactly the variables x, y, z: (∂f(v)/∂x ∂f(v)/∂y ∂f(v)/∂z) |
+| `\gradient{x,y,z}` | gradient in exactly the variables x, y, z: (∂f/∂x(v) ∂f/∂y(v) ∂f/∂z(v)) |
 | `\gradient[x,y,z]{}` | the same, with the list as an option |
-| `\jacobian{2}{3}` | 2×3 derivative matrix f′(v), entries ∂fᵢ(v)/∂xⱼ |
+| `\jacobian{2}{3}` | 2×3 derivative matrix f′(v), entries ∂fᵢ/∂xⱼ(v) |
 | `\jacobian[x,y]{2}{}` | 2×2 derivative matrix in the variables x, y |
 | `\jacobian*{m}{n}` | general m×n derivative matrix, no point |
 

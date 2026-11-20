@@ -308,7 +308,7 @@ Leave an option empty to keep its default: `\hessian[][g]{5}`,
 `\gradient[variables][function][point]{n}` · `\gradient*…`
 
 Options exactly as for [`\hessian`](#hessian). Gives the row vector
-(∂f(v)/∂x₁ ⋯ ∂f(v)/∂xₙ), as in the IMO26 notes.
+(∂f/∂x₁(v) ⋯ ∂f/∂xₙ(v)), as in the IMO26 notes.
 
 ```latex
 \gradient{3}
@@ -323,7 +323,7 @@ Options exactly as for [`\hessian`](#hessian). Gives the row vector
 
 Options as for [`\hessian`](#hessian). `{m}` = number of component
 functions (rows), `{n}` = number of variables (columns, or `{}` with a
-variable list). Entries ∂fᵢ(v)/∂xⱼ.
+variable list). Entries ∂fᵢ/∂xⱼ(v).
 
 ```latex
 \jacobian{2}{3}        % 2×3 derivative matrix f'(v)
