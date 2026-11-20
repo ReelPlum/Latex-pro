@@ -9,16 +9,40 @@
   {\frac{\partial^{3} f}{\partial x^{2}\partial y}}
 \lpsame{partialdiff keeps written order}{\partialdiff[f]{x,y,x}}
   {\frac{\partial^{3} f}{\partial x\partial y\partial x}}
-\lpsame{partialdiff operator}{\partialdiff{t}}{\frac{\partial}{\partial t}}
+\lpsame{partialdiff operator}{\partialdiff[]{t}}{\frac{\partial}{\partial t}}
+% \partialdiff without [function] uses the default function f
+\lpsame{partialdiff default function}{\partialdiff{y}}{\frac{\partial f}{\partial y}}
+\lpsame{partialdiff default same as [f]}{\partialdiff{x,x,y}}{\partialdiff[f]{x,x,y}}
+\lpsame{partialdiff explicit function wins}{\partialdiff[g]{y}}{\frac{\partial g}{\partial y}}
+\setpartialdifffunction{g}
+\lpsame{setpartialdifffunction}{\partialdiff{y}}{\frac{\partial g}{\partial y}}
+\lpsame{setpartialdifffunction higher order}{\partialdiff{x,y}}
+  {\frac{\partial^{2} g}{\partial x\partial y}}
+\lpsame{setpartialdifffunction explicit wins}{\partialdiff[h]{y}}{\frac{\partial h}{\partial y}}
+\lpsame{setpartialdifffunction empty bracket still operator}{\partialdiff[]{y}}
+  {\frac{\partial}{\partial y}}
+\lpsame{setpartialdifffunction does not change hessian}{\hessian*{1}}
+  {\mat{\dfrac{\partial^{2} f}{\partial x_1^{2}}}}
+\setpartialdifffunction{u(x,y)}
+\lpsame{setpartialdifffunction with arguments}{\partialdiff{x}}
+  {\frac{\partial u(x,y)}{\partial x}}
+{\setpartialdifffunction{h}}
+\lpsame{setpartialdifffunction is local to a group}{\partialdiff{x}}
+  {\frac{\partial u(x,y)}{\partial x}}
+\setpartialdifffunction{}
+\lpsame{setpartialdifffunction empty gives operator}{\partialdiff{t}}
+  {\frac{\partial}{\partial t}}
+\setpartialdifffunction{f}
 \lpsame{diff upright d}{\diff[f]{x,x}}{\frac{\mathrm{d}^{2} f}{\mathrm{d} x^{2}}}
-\lpsame{diff does not leak into partialdiff}{\diff{x}\partialdiff{x}}
+\lpsame{diff does not leak into partialdiff}{\diff{x}\partialdiff[]{x}}
   {\frac{\mathrm{d}}{\mathrm{d} x}\frac{\partial}{\partial x}}
+\lpsame{diff keeps no default function}{\diff{x}}{\frac{\mathrm{d}}{\mathrm{d} x}}
 
 
 \lpsame{hessian 2}{\hessian{2}}
-  {\mat{\dfrac{\partial^{2} f(v)}{\partial x_1^{2}} & \dfrac{\partial^{2} f(v)}{\partial x_1\partial x_2} \\
+  {\mat{\dfrac{\partial^{2} f}{\partial x_1^{2}}(v) & \dfrac{\partial^{2} f}{\partial x_1\partial x_2}(v) \\
         \noalign{\vskip 1ex}
-        \dfrac{\partial^{2} f(v)}{\partial x_2\partial x_1} & \dfrac{\partial^{2} f(v)}{\partial x_2^{2}}}}
+        \dfrac{\partial^{2} f}{\partial x_2\partial x_1}(v) & \dfrac{\partial^{2} f}{\partial x_2^{2}}(v)}}
 % regression: empty options keep their defaults
 \lpsame{hessian empty first option}{\hessian[][g]{5}}{\hessian[x][g][v]{5}}
 \lpsame{hessian empty first two options}{\hessian[][][\mathbf a]{2}}{\hessian[x][f][\mathbf a]{2}}
@@ -28,18 +52,49 @@
         \noalign{\vskip 1ex}
         \dfrac{\partial^{2} f}{\partial x_2\partial x_1} & \dfrac{\partial^{2} f}{\partial x_2^{2}}}}
 \lpsame{hessian variable list}{\hessian[x,y]{}}
-  {\mat{\dfrac{\partial^{2} f(v)}{\partial x^{2}} & \dfrac{\partial^{2} f(v)}{\partial x\partial y} \\
+  {\mat{\dfrac{\partial^{2} f}{\partial x^{2}}(v) & \dfrac{\partial^{2} f}{\partial x\partial y}(v) \\
         \noalign{\vskip 1ex}
-        \dfrac{\partial^{2} f(v)}{\partial y\partial x} & \dfrac{\partial^{2} f(v)}{\partial y^{2}}}}
+        \dfrac{\partial^{2} f}{\partial y\partial x}(v) & \dfrac{\partial^{2} f}{\partial y^{2}}(v)}}
 \lpsame{hessian list ignores size}{\hessian[x,y]{2}}{\hessian[x,y]{}}
 
 \lpsame{gradient}{\gradient{2}}
-  {\mat{\dfrac{\partial f(v)}{\partial x_1} & \dfrac{\partial f(v)}{\partial x_2}}}
+  {\mat{\dfrac{\partial f}{\partial x_1}(v) & \dfrac{\partial f}{\partial x_2}(v)}}
 \lpsame{gradient empty option}{\gradient[][h]{2}}{\gradient[x][h][v]{2}}
 \lpsame{gradient list}{\gradient*[x,y]{}}
   {\mat{\dfrac{\partial f}{\partial x} & \dfrac{\partial f}{\partial y}}}
+% regression: \gradient{x,y,z} used to give x_1, x_2, ..., x_x, x_y, x_z;
+% a list in the size argument means exactly these variables
+\lpsame{gradient list in size argument}{\gradient{x,y,z}}
+  {\mat{\dfrac{\partial f}{\partial x}(v) & \dfrac{\partial f}{\partial y}(v)
+        & \dfrac{\partial f}{\partial z}(v)}}
+\lpsame{gradient list in size argument same as option}{\gradient{x,y,z}}{\gradient[x,y,z]{}}
+\lpsame{gradient star list in size argument}{\gradient*{x,y}}
+  {\mat{\dfrac{\partial f}{\partial x} & \dfrac{\partial f}{\partial y}}}
+\lpsame{gradient list in size argument keeps options}{\gradient[][g][a]{s,t}}
+  {\mat{\dfrac{\partial g}{\partial s}(a) & \dfrac{\partial g}{\partial t}(a)}}
+\lpsame{gradient list in size argument wins over symbol}{\gradient[y]{u,w}}{\gradient[u,w]{}}
+\lpsame{hessian list in size argument}{\hessian{x,y}}{\hessian[x,y]{}}
+% regression: \hessian{x,y} must not give x_1, x_2, ..., x_x, x_y
+\lpsame{hessian star list in size argument}{\hessian*{x,y}}
+  {\mat{\dfrac{\partial^{2} f}{\partial x^{2}} & \dfrac{\partial^{2} f}{\partial x\partial y} \\
+        \noalign{\vskip 1ex}
+        \dfrac{\partial^{2} f}{\partial y\partial x} & \dfrac{\partial^{2} f}{\partial y^{2}}}}
+\lpsame{hessian list in size argument keeps options}{\hessian[][g][a]{s,t}}{\hessian[s,t][g][a]{}}
+\lpsame{jacobian list in size argument}{\jacobian{2}{x,y}}{\jacobian[x,y]{2}{}}
 \lpsame{jacobian}{\jacobian*{2}{1}}
   {\mat{\dfrac{\partial f_1}{\partial x_1} \\ \noalign{\vskip 1ex} \dfrac{\partial f_2}{\partial x_1}}}
+% regression: the point goes after the fraction, d^2 f / dx dy (v), never
+% inside the numerator as d^2 f(v) / dx dy
+\lpsame{hessian point after fraction}{\hessian[x,y][f][v]{}}
+  {\mat{\dfrac{\partial^{2} f}{\partial x^{2}}(v) & \dfrac{\partial^{2} f}{\partial x\partial y}(v) \\
+        \noalign{\vskip 1ex}
+        \dfrac{\partial^{2} f}{\partial y\partial x}(v) & \dfrac{\partial^{2} f}{\partial y^{2}}(v)}}
+\lpsame{hessian point after fraction, own point}{\hessian[x][g][\mathbf a]{1}}
+  {\mat{\dfrac{\partial^{2} g}{\partial x_1^{2}}(\mathbf a)}}
+\lpsame{gradient point after fraction}{\gradient[x][g][\mathbf a]{1}}
+  {\mat{\dfrac{\partial g}{\partial x_1}(\mathbf a)}}
+\lpsame{jacobian point after fraction}{\jacobian{2}{1}}
+  {\mat{\dfrac{\partial f_1}{\partial x_1}(v) \\ \noalign{\vskip 1ex} \dfrac{\partial f_2}{\partial x_1}(v)}}
 \lpsame{jacobian empty option}{\jacobian[][g]{2}{2}}{\jacobian[x][g][v]{2}{2}}
 \lpsame{calculus follows bracket style}{\usematb\gradient*{1}}{\bmat{\dfrac{\partial f}{\partial x_1}}}
 
