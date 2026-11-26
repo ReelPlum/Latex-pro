@@ -1,0 +1,11 @@
+x = 1
+x := 1
+x <- 1
+if a = b then x = 1
+elseif a == b then
+while a = b do
+for i = 1 to n do
+until a = b
+if a <= b and c != d then
+y = a = b // if a = b
+return a = b

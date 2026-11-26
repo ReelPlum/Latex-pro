@@ -13,6 +13,12 @@
 %                                  pages by itself; a shorter one is kept in
 %                                  one piece (moved to the next page)
 %   \python[span]{f.py}            may always break; span=false: never
+%   \python[edge=zigzag]{f.py}     the look of the edges where a page break
+%                                  splits the box: wave (default), zigzag,
+%                                  scallop, torn, fade, dashed, scissors,
+%                                  continued, straight
+%   \latexprocodesetup{edge=torn}  default options of every later block;
+%                                  also \usepackage[edge=torn]{latex-pro}
 %   \begin{pythoncode} ... \end{pythoncode}   Python typed in the .tex file
 %                                  (pythoncode* without line numbers)
 %   \py{x = 1}                     short inline Python inside a sentence
@@ -143,6 +149,9 @@
 % identifiers: the name right after def / class / function is a function name
 \newcommand\latexpro@ident{%
   \iflatexpro@fn\global\latexpro@fnfalse\latexpro@functionstyle\fi}
+% ... on the same line: "end function" at the end of a line must not make
+% the first name on the next line a function name
+\lst@AddToHook{EOL}{\global\latexpro@fnfalse}
 % xcolor and tcolorbox are loaded at \begin{document} if the document has not
 % loaded them, so \usepackage[...]{xcolor} anywhere in the preamble never gives
 % an option clash.
@@ -170,35 +179,106 @@
     left=10pt, right=10pt, top=4pt, bottom=6pt,
     lefttitle=10pt, righttitle=10pt, toptitle=3pt, bottomtitle=3pt,
     before skip=\medskipamount, after skip=\medskipamount,
-    % a box split over pages: the split edges are square, have no border
-    % (the jigsaw skin draws only the outer edges) and are cut in a wave
+    % a box split over pages: the split edges are square and have no border
+    % (the jigsaw skin draws only the outer edges); \latexpro@edge then
+    % draws them in the box's edge style (wave by default, see below)
     enhanced jigsaw,
-    extras first={sharp corners=south, overlay={\latexpro@wave{south}{1}}},
+    latexpro-code-edge,
+    extras first={sharp corners=south, overlay={\latexpro@edge{south}{1}}},
     extras middle={sharp corners,
-      overlay={\latexpro@wave{south}{1}\latexpro@wave{north}{-1}}},
-    extras last={sharp corners=north, overlay={\latexpro@wave{north}{-1}}}}}%
+      overlay={\latexpro@edge{south}{1}\latexpro@edge{north}{-1}}},
+    extras last={sharp corners=north, overlay={\latexpro@edge{north}{-1}}}}}%
+  % extra room between the code and a split edge, for the styles that draw
+  % over it (fade, continued)
+  \tcbset{latexpro-code-edge/.code={%
+    \edef\latexpro@tmp{\csname latexpro@edgesep@\latexpro@edgestyle\endcsname}%
+    \pgfkeysalso{topsep at break=\latexpro@tmp, bottomsep at break=\latexpro@tmp}}}%
   \providecolor{latexpro@pagebg}{named}{white}%
+  \usetikzlibrary{fadings}%
+  \@ifpackageloaded{pifont}{}{\IfFileExists{pifont.sty}{\RequirePackage{pifont}}{}}%
 }
-% \latexpro@wave{south}{1} / {north}{-1}: cut that edge of a box part in a
-% wave, by covering everything beyond the wave (border included, so the side
-% borders stop where the wave meets them) in the page colour
-% (latexpro@pagebg). \latexprowaveheight is the height of the wave,
-% \latexprowavelength one period of it at length=1; the box option
-% length=x makes the period x times as long.
+% ---------------------------------------------------------------------------
+% Split edges: how a code box looks where a page break cuts it
+% ---------------------------------------------------------------------------
+% \latexpro@edge{south}{1} draws the bottom edge of a box part above a page
+% break, \latexpro@edge{north}{-1} the top edge of the part below it, in the
+% style \latexpro@edgestyle (the box option edge=..., or the document
+% default from \latexprocodesetup{edge=...} / \usepackage[edge=...]{...}):
 %
-% The two edges of a page break fit together like puzzle pieces: where the
-% bottom edge of one part bulges down (a wave top on that edge), the top
-% edge of the next part dips down (a wave bottom), and the other way round.
-% \latexpro@wavedepth{s}{t} is how far in from the edge the cut lies, t pt
-% from the west side, for s = 1 (south) or -1 (north): 2h + s*h*sin, so the
-% depth of the south edge plus that of the north edge is always 4h.
+%   wave       a smooth sine wave (default)
+%   zigzag     sharp teeth, like pinking shears
+%   scallop    round lobes, like a cloud or a stamp edge
+%   torn       an irregular jagged edge, like torn paper
+%   fade       the box fades into the page
+%   dashed     a dashed line, like a perforation
+%   scissors   a dashed line with scissors on it (cut here)
+%   continued  a straight open edge with "continued on next page" /
+%              "continued from previous page"
+%   straight   a straight open edge, nothing drawn
+%
+% The cut styles (wave, zigzag, scallop, torn) cut the edge by covering
+% everything beyond the cut line (border included, so the side borders stop
+% where the cut meets them) in the page colour (latexpro@pagebg).
+% \latexprowaveheight is the height of the cut, \latexprowavelength one
+% period of it at length=1; the box option length=x makes the period x
+% times as long.
+%
+% The two edges of a page break fit together like puzzle pieces: each cut
+% style has a profile p(t) between -1 and 1, t pt from the west side, and
+% the cut lies 2h + s*h*p(t) in from the edge, for s = 1 (south) or -1
+% (north). Where the bottom edge of one part bulges down, the top edge of
+% the next part dips down, and the depth of the south edge plus that of
+% the north edge is always 4h.
 \newcommand\latexprowaveheight{1.8pt}
 \newcommand\latexprowavelength{14pt}
+% the fade style: how tall the fade is
+\newcommand\latexprofadeheight{14pt}
+% the continued style: the labels at the two edges of a page break
+\newcommand\latexprocontinuedtext{continued on next page}
+\newcommand\latexprocontinuedfromtext{continued from previous page}
 \newcommand\latexpro@wavefactor{1}
+\newcommand\latexpro@edgestyle{wave}
+% extra space between the code and a split edge, per style
+\def\latexpro@edgesep@wave{0pt}
+\def\latexpro@edgesep@zigzag{0pt}
+\def\latexpro@edgesep@scallop{0pt}
+\def\latexpro@edgesep@torn{0pt}
+\def\latexpro@edgesep@fade{6pt}
+\def\latexpro@edgesep@dashed{0pt}
+\def\latexpro@edgesep@scissors{0pt}
+\def\latexpro@edgesep@continued{6pt}
+\def\latexpro@edgesep@straight{0pt}
+% profiles of the cut styles (t in pt, period \latexpro@wavel), and the
+% distance between the points the cut line is drawn through, as a fraction
+% of the period (zigzag and torn need their corners exactly)
+\newcommand\latexpro@profile@wave[1]{sin((#1)/\latexpro@wavel*360)}
+\def\latexpro@step@wave{0.125}
+% zigzag: a triangle wave in step with the sine (0 at t=0, 1 at a quarter)
+\newcommand\latexpro@profile@zigzag[1]{%
+  (1-4*abs(mod((#1)/\latexpro@wavel+0.25,1)-0.5))}
+\def\latexpro@step@zigzag{0.25}
+% scallop: round lobes hanging down from the bottom edge, with a point
+% between two lobes (the top edge gets round dips and points up)
+\newcommand\latexpro@profile@scallop[1]{(1-2*abs(sin((#1)/\latexpro@wavel*180)))}
+\def\latexpro@step@scallop{0.0625}
+% torn: straight pieces between points a fifth of a period apart, each at a
+% pseudo-random height; the same for every box, so both edges match
+\newcommand\latexpro@profile@torn[1]{%
+  (2*mod(abs(sin(round((#1)/(\latexpro@wavel/5))*12.9898+7)*437.585),1)-1)}
+\def\latexpro@step@torn{0.2}
+% \latexpro@depth{style}{s}{t}: how far in from the edge the cut lies
+\newcommand\latexpro@depth[3]{%
+  (2*\latexpro@waveh+(#2)*\latexpro@waveh*\csname latexpro@profile@#1\endcsname{#3})}
+\newcommand\latexpro@wavedepth{\latexpro@depth{wave}}
 \newdimen\latexpro@wavedim
-\newcommand\latexpro@wavedepth[2]{%
-  (2*\latexpro@waveh+(#1)*\latexpro@waveh*sin((#2)/\latexpro@wavel*360))}
-\newcommand\latexpro@wave[2]{%
+\newcommand\latexpro@edge[2]{%
+  \ifcsname latexpro@edge@\latexpro@edgestyle\endcsname
+    \csname latexpro@edge@\latexpro@edgestyle\endcsname{#1}{#2}%
+  \else
+    \latexpro@edge@wave{#1}{#2}%
+  \fi}
+% \latexpro@cut{style}{south/north}{s}: cut the edge along the profile
+\newcommand\latexpro@cut[3]{%
   % the width of the box, from its own west and east edges
   \pgfextractx\latexpro@wavedim{\pgfpointanchor{frame}{east}}%
   \pgfextractx\dimen@{\pgfpointanchor{frame}{west}}%
@@ -206,22 +286,69 @@
   \pgfmathsetmacro\latexpro@wavewn{\latexpro@wavedim}%
   \pgfmathsetmacro\latexpro@waveh{\latexprowaveheight}%
   \pgfmathsetmacro\latexpro@wavel{\latexprowavelength*\latexpro@wavefactor}%
-  % #2 = 1 for south (cut moves up from the edge), -1 for north (down)
-  \def\latexpro@waves{#2}%
+  \pgfmathsetmacro\latexpro@wavestep{\latexpro@wavel*\csname latexpro@step@#1\endcsname}%
+  \pgfmathtruncatemacro\latexpro@waven{max(1,floor(\latexpro@wavewn/\latexpro@wavestep))}%
+  % #3 = 1 for south (cut moves up from the edge), -1 for north (down)
+  \def\latexpro@waves{#3}%
   \fill[latexpro@pagebg]
-    ([xshift=-1pt, yshift=\latexpro@waves*2*\latexpro@waveh pt]frame.#1 west)
-    -- plot[domain=0:\latexpro@wavewn, samples={max(2,\latexpro@wavewn/2)}, variable=\t]
+    ([xshift=-1pt,
+      yshift={\latexpro@waves*\latexpro@depth{#1}{\latexpro@waves}{0}*1pt}]frame.#2 west)
+    -- plot[domain=0:\latexpro@waven*\latexpro@wavestep,
+            samples=\latexpro@waven+1, variable=\t]
        ([xshift=\t pt,
-         yshift={\latexpro@waves*\latexpro@wavedepth{\latexpro@waves}{\t}*1pt}]frame.#1 west)
+         yshift={\latexpro@waves*\latexpro@depth{#1}{\latexpro@waves}{\t}*1pt}]frame.#2 west)
+    -- ([xshift=0pt,
+         yshift={\latexpro@waves*\latexpro@depth{#1}{\latexpro@waves}{\latexpro@wavewn}*1pt}]frame.#2 east)
     -- ([xshift=1pt,
-         yshift={\latexpro@waves*\latexpro@wavedepth{\latexpro@waves}{\latexpro@wavewn}*1pt}]frame.#1 east)
-    -- ([xshift=1pt, yshift=-\latexpro@waves*1pt]frame.#1 east)
-    -- ([xshift=-1pt, yshift=-\latexpro@waves*1pt]frame.#1 west) -- cycle;}
+         yshift={\latexpro@waves*\latexpro@depth{#1}{\latexpro@waves}{\latexpro@wavewn}*1pt}]frame.#2 east)
+    -- ([xshift=1pt, yshift=-\latexpro@waves*1pt]frame.#2 east)
+    -- ([xshift=-1pt, yshift=-\latexpro@waves*1pt]frame.#2 west) -- cycle;}
+\newcommand\latexpro@edge@wave{\latexpro@cut{wave}}
+\newcommand\latexpro@edge@zigzag{\latexpro@cut{zigzag}}
+\newcommand\latexpro@edge@scallop{\latexpro@cut{scallop}}
+\newcommand\latexpro@edge@torn{\latexpro@cut{torn}}
+% fade: page colour from fully covering at the edge to clear
+% \latexprofadeheight in from it
+\newcommand\latexpro@edge@fade[2]{%
+  \fill[latexpro@pagebg, path fading=\ifnum#2>0 north\else south\fi]
+    ([xshift=-1pt, yshift=-#2*1pt]frame.#1 west)
+    rectangle ([xshift=1pt, yshift=#2*\latexprofadeheight]frame.#1 east);}
+% dashed: a dashed line in the border colour where the border would be
+\newcommand\latexpro@edge@dashed[2]{%
+  \draw[latexpro@codeframe, line width=0.6pt, dash pattern=on 4pt off 3pt]
+    ([yshift=#2*0.3pt]frame.#1 west) -- ([yshift=#2*0.3pt]frame.#1 east);}
+% scissors: the dashed line, with scissors on the bottom edge cutting
+% along it to the right (pifont's \ding{34}, mirrored; a cross if pifont is
+% not installed)
+\newcommand\latexpro@scissors{\ifdefined\ding\ding{34}\else$\times$\fi}
+\newcommand\latexpro@edge@scissors[2]{%
+  \latexpro@edge@dashed{#1}{#2}%
+  \ifnum#2>0
+    \node[fill=latexpro@pagebg, text=latexpro@headerinfo, inner sep=0.8pt,
+          font=\small, xscale=-1, transform shape]
+      at ([xshift=18pt, yshift=1pt]frame.#1 west)
+      {\latexpro@scissors};
+  \fi}
+% continued: a label on the right, just inside the edge
+\newcommand\latexpro@edge@continued[2]{%
+  \node[anchor=\ifnum#2>0 south east\else north east\fi, inner sep=0pt,
+        font=\sffamily\scriptsize\itshape, text=latexpro@headerinfo]
+    at ([xshift=-10pt, yshift=#2*4pt]frame.#1 east)
+    {\ifnum#2>0 \latexprocontinuedtext\else\latexprocontinuedfromtext\fi};}
+\newcommand\latexpro@edge@straight[2]{}
 % keywords and operators: listings also hands operators (otherkeywords such
 % as = - +) inside comments and strings to keywordstyle, so colour them only
 % in ordinary code (\lst@Pmode), never in a comment or a string
 \newcommand\latexpro@keywordcolor{%
   \ifnum\lst@mode=\lst@Pmode\color{latexpro@keyword}\fi}
+% assignment and comparison operators. Assignments (= := <- += -=) and the
+% other operators are red (keyword colour); comparisons (== != < > <= >=)
+% are black (text colour), like \leq \geq \neq. listings cuts operators into
+% single characters, so "==" could never be told apart from "=" as
+% otherkeywords; these are literate replacements instead (the first
+% character of each must not be an otherkeyword: those win over literate).
+% {} keeps a font from joining == or -> into one ligature.
+\newcommand\latexpro@op[1]{{\latexpro@keywordcolor#1}}
 % the code font for listings: listings prints * - < > \ _ as plain
 % characters only when the font is \ttdefault (otherwise it uses centred or
 % maths symbols, which sit wrong in another monospace font such as JetBrains
@@ -260,6 +387,14 @@
     {é}{{\'e}}1 {è}{{\`e}}1 {ß}{{\ss}}1
     {—}{{-{}-}}1 {–}{{-}}1 {“}{{``}}1 {”}{{''}}1 {‘}{{`}}1 {’}{{'}}1
     {…}{{\ldots}}1 {×}{{$\times$}}1 {·}{{$\cdot$}}1
+    % single characters before the longer operators that start with them
+    {=}{{\latexpro@op{=}}}1 {-}{{\latexpro@op{-}}}1
+    {<}{{\string<}}1 {>}{{\string>}}1
+    {==}{{={}=}}2 {!=}{{!{}=}}2 {<=}{{\string<{}=}}2 {>=}{{\string>{}=}}2
+    {:=}{{\latexpro@op{:{}=}}}2 {-=}{{\latexpro@op{-{}=}}}2
+    {->}{{\latexpro@op{-{}\string>}}}2
+    {<<}{{\latexpro@op{\string<{}\string<}}}2
+    {>>}{{\latexpro@op{\string>{}\string>}}}2
 }
 
 % ---------------------------------------------------------------------------
@@ -270,8 +405,9 @@
   language=Python,
   deletekeywords={def,class,True,False,None,print},
   morekeywords={async,await,nonlocal,with,as,yield},
-  % operators share the keyword colour
-  otherkeywords={==,!=,<=,>=,**,//,+=,-=,*=,/=,->,=,+,-,*,/,\%,<,>,&,|,^,~,@},
+  % operators share the keyword colour; = - < > (and ==, <=, ->, ...)
+  % are literate replacements in latexpro-code: comparisons are black
+  otherkeywords={**,//,+=,*=,/=,+,*,/,\%,&,|,^,~,@},
   morekeywords=[2]{abs,all,any,bool,dict,enumerate,float,int,len,list,map,
     max,min,open,print,range,reversed,round,set,sorted,str,sum,tuple,type,
     zip,isinstance,super,input,filter,iter,next,repr,format,hash,id,divmod,pow},
@@ -307,6 +443,25 @@
     filename .default:n  = true ,
     % [length=x]: the wave on a split edge has x times the usual period
     length   .code:n     = { \tl_set:Nn \latexpro@wavefactor {#1} } ,
+    % [edge=zigzag]: the look of the edges where the box is split
+    edge     .choices:nn =
+      { wave , zigzag , scallop , torn , fade , dashed , scissors , continued , straight }
+      { \tl_set_eq:NN \latexpro@edgestyle \l_keys_choice_tl } ,
+  }
+% \latexprocodesetup{edge=zigzag, length=2}: the default options of every
+% later code block (any option of \python, \pseudo, pythoncode and pseudo;
+% a block's own options still win). Options of \usepackage{latex-pro} /
+% \usepackage{latex-pro-code} with an = in them go here too, e.g.
+% \usepackage[edge=torn]{latex-pro}. A second \latexprocodesetup adds to
+% (and overrides) the first; inside a group it lasts to the end of the group.
+\clist_new:N \l__latexpro_code_defaults_clist
+\NewDocumentCommand \latexprocodesetup { m }
+  {
+    % set them once now, so a wrong value (edge=wavy) is reported here
+    \group_begin:
+      \keys_set_known:nnN { latexpro / code } {#1} \l__latexpro_code_lst_clist
+    \group_end:
+    \clist_put_right:Nn \l__latexpro_code_defaults_clist {#1}
   }
 \AddToHook{begindocument/before}
   {
@@ -339,6 +494,7 @@
       { \prg_return_true: } { \prg_return_false: }
   }
 \cs_generate_variant:Nn \__latexpro_code_reserved:nF { V }
+\cs_generate_variant:Nn \keys_set_known:nnN { ne }
 \cs_generate_variant:Nn \regex_extract_all:nnN { nV }
 \bool_new:N \l__latexpro_code_hyphen_bool
 \str_new:N \l__latexpro_code_line_str
@@ -396,13 +552,20 @@
       {
         \ior_str_map_inline:Nn \g__latexpro_code_ior
           {
-            \regex_extract_all:nnN
+            % \pseudo reads its prepared copy, where a hyphenated name is
+            % already wrapped as $\mbox{\latexprohyphenname{NAME}}$: take
+            % the wrapper off again, or NAME( is never seen as a call
+            \str_set:Nn \l__latexpro_code_line_str {##1}
+            \regex_replace_all:nnN
+              { \$ \\mbox \{ \\latexprohyphenname \{ ([^\}]*) \} \} \$ }
+              { \1 } \l__latexpro_code_line_str
+            \regex_extract_all:nVN
               {
                 (?: [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ \s* \( )
                 | (?: (?:def|class|function|procedure|algorithm) \s+
                       [A-Za-z][A-Za-z0-9]* (?: - [A-Za-z][A-Za-z0-9]* )+ )
               }
-              {##1} \l__latexpro_code_found_seq
+              \l__latexpro_code_line_str \l__latexpro_code_found_seq
             \seq_map_inline:Nn \l__latexpro_code_found_seq
               {
                 \str_set:Ne \l__latexpro_code_name_str { \str_foldcase:n {####1} }
@@ -425,7 +588,11 @@
     \tl_set:Nn \l__latexpro_code_span_tl { auto }
     \bool_set_true:N \l__latexpro_code_filename_bool
     \tl_set:Nn \latexpro@wavefactor { 1 }
-    \keys_set_known:nnN { latexpro / code } {#1} \l__latexpro_code_lst_clist
+    \tl_set:Nn \latexpro@edgestyle { wave }
+    % the defaults from \latexprocodesetup, then the block's own options
+    \keys_set_known:neN { latexpro / code }
+      { \exp_not:V \l__latexpro_code_defaults_clist , \exp_not:n {#1} }
+      \l__latexpro_code_lst_clist
     \bool_lazy_and:nnT
       { \tl_if_empty_p:N \l__latexpro_code_caption_tl }
       { \l__latexpro_code_filename_bool }
@@ -561,7 +728,9 @@
   % operators share the keyword colour; "/" is coloured by the
   % pre-processing instead (as an otherkeyword it would stop listings from
   % seeing // and /* as the start of a comment)
-  otherkeywords={:=,==,=,+,-,\%},
+  % = := - (and the black comparison ==) are literate replacements in
+  % latexpro-code
+  otherkeywords={+,\%},
   morekeywords=[2]{print,input,output,call,length,len,max,min,abs,swap},
   morekeywords=[3]{true,false,null,nil,none},
   % the name after these is coloured as a function name
@@ -642,6 +811,7 @@
         \regex_replace_all:nnN { /\* } { @@latexpro@open@@ } \l__latexpro_pseudo_code_str
         \regex_replace_all:nnN { \*/ } { @@latexpro@close@@ } \l__latexpro_pseudo_code_str
         \__latexpro_pseudo_math_part:N \l__latexpro_pseudo_code_str
+        \__latexpro_pseudo_operators:N \l__latexpro_pseudo_code_str
         % names with hyphens (ADD-building-to-SKYLINE, left-part) are one
         % name, not a subtraction: a "-" between two letters joins them.
         % A "-" before a digit or a space (n-1, a - b) stays an operator.
@@ -654,6 +824,37 @@
         \regex_replace_all:nnN { @@latexpro@close@@ } { */ } \l__latexpro_pseudo_code_str
         \__latexpro_pseudo_math_part:N \l__latexpro_pseudo_comment_str
         \str_set:Ne #1 { \l__latexpro_pseudo_code_str \l__latexpro_pseudo_comment_str }
+      }
+  }
+% assignment and comparison in the code part of a line (after
+% \__latexpro_pseudo_math_part:N, so <- is already $\gets$):
+%  * an arrow assignment (<-, \gets, \leftarrow) is red like "=" and ":=";
+%  * a lone "=" in a condition (if / elseif / elif / while / until, up to
+%    then or do) or after return is a comparison, so black like "==":
+%    "if A_m = x then" and "return a = b" compare, "for i = 1 to n" and
+%    "x = 1" assign.
+\cs_generate_variant:Nn \regex_extract_once:nnNT { nV }
+\seq_new:N \l__latexpro_pseudo_cond_seq
+\str_new:N \l__latexpro_pseudo_cond_str
+\cs_new_protected:Npn \__latexpro_pseudo_operators:N #1
+  {
+    \regex_replace_all:nnN { \$ \\ (?: gets | leftarrow ) \$ }
+      { \$ \\latexprogets \$ } #1
+    \regex_extract_once:nVNT
+      { \A ( \s* (?i) (?: if | elseif | elif | else \s+ if | while | until | return ) \b .*? )
+        ( \b (?i) (?: then | do ) \b .* )? \Z }
+      #1 \l__latexpro_pseudo_cond_seq
+      {
+        \str_set:Ne \l__latexpro_pseudo_cond_str
+          { \seq_item:Nn \l__latexpro_pseudo_cond_seq { 2 } }
+        % "=" that is not part of := == += -= *= %= (<= >= != are maths)
+        \regex_replace_all:nnN { (\A | [^=:+\-*/\%!<>]) = ([^=] | \Z) }
+          { \1 \$ \\latexproeq \$ \2 } \l__latexpro_pseudo_cond_str
+        \str_set:Ne #1
+          {
+            \l__latexpro_pseudo_cond_str
+            \seq_item:Nn \l__latexpro_pseudo_cond_seq { 3 }
+          }
       }
   }
 \cs_new_protected:Npn \__latexpro_pseudo_math_part:N #1
@@ -771,6 +972,10 @@
 % only the Pmode every listing starts in
 \tl_const:Nn \latexpro@plainmodes
   { { \lst@EnterMode { \lst@Pmode } { \lst@SelectCharTable } } }
+% $\latexprogets$: an arrow assignment, red like = and := ; $\latexproeq$:
+% an "=" that compares (in a condition), black like ==
+\NewDocumentCommand \latexprogets { } { { \color{latexpro@keyword} \gets } }
+\NewDocumentCommand \latexproeq { } { \mbox { \color{latexpro@text} = } }
 \str_new:N \l__latexpro_hyphen_name_str
 \NewDocumentCommand \latexprohyphenname { m }
   {
@@ -867,5 +1072,10 @@
       { { \latexprocodefont \color{latexpro@text} #1 } }
   }
 \ExplSyntaxOff
+
+% Package options: \usepackage[edge=zigzag, length=2]{latex-pro-code} is
+% \latexprocodesetup{edge=zigzag, length=2}
+\DeclareOption*{\expandafter\latexprocodesetup\expandafter{\CurrentOption}}
+\ProcessOptions\relax
 
 \endinput
